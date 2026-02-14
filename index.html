@@ -159,6 +159,15 @@
       cursor:pointer;
     }
     .btn:hover{background:rgba(255,255,255,0.05)}
+    .surveyCard{margin-bottom:14px}
+    .surveyTop{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+    .surveyTitle{margin:0;font-size:16px}
+    .surveyMeta{font-size:12px;color:var(--muted)}
+    .surveyQ{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+    .surveyLabel{font-size:14px;margin-bottom:8px}
+    .surveyControls{display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
+    .surveyInput{width:100%;background:#0b1322;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:14px}
+    .surveyHint{font-size:12px;color:var(--muted);margin-top:6px}
   </style>
 </head>
 
@@ -185,6 +194,26 @@
         </div>
       </div>
     </header>
+
+    <div class="card surveyCard">
+      <div class="surveyTop">
+        <div>
+          <h2 class="surveyTitle">Daily check-in (10 questions)</h2>
+          <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
+        </div>
+        <button class="btn" id="surveyResetBtn" type="button">Reset</button>
+      </div>
+      <div class="surveyQ">
+        <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
+        <input id="surveyInput" class="surveyInput" type="number" />
+        <div class="surveyHint" id="surveyHint"></div>
+        <div class="surveyControls">
+          <button class="btn" id="surveyPrevBtn" type="button">Back</button>
+          <button class="btn" id="surveyNextBtn" type="button">Next</button>
+          <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
+        </div>
+      </div>
+    </div>
 
     <div class="grid">
       <div class="card">
@@ -290,6 +319,36 @@
     // Example format:
     // https://docs.google.com/spreadsheets/d/e/<PUB_ID>/pub?gid=<GID>&single=true&output=csv
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/edit?usp=sharing";
+    // Apps Script web app URL that appends POSTed JSON rows into your sheet.
+    // Example: https://script.google.com/macros/s/<SCRIPT_ID>/exec
+    const SHEET_WRITE_URL = "";
+
+    function toGoogleSheetCsvUrl(url){
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+
+      // Already a CSV/export endpoint.
+      if (/output=csv/.test(raw) || /tqx=out:csv/.test(raw)) return raw;
+
+      // Convert a normal sheet share/edit URL into an export URL.
+      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) return raw;
+
+      let gid = "0";
+      try {
+        const u = new URL(raw);
+        gid = u.searchParams.get("gid") || gid;
+        if (u.hash) {
+          const hashMatch = u.hash.match(/gid=(\d+)/);
+          if (hashMatch) gid = hashMatch[1];
+        }
+      } catch (_) {
+        const gidMatch = raw.match(/[?&#]gid=(\d+)/);
+        gid = gidMatch ? gidMatch[1] : gid;
+      }
+
+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+    }
 
     function toGoogleSheetCsvUrl(url){
       const raw = String(url || "").trim();
@@ -599,6 +658,141 @@
       d.classList.add(dot);
     }
 
+    const SURVEY_QUESTIONS = [
+      { key: "SleepHours", label: "1) How many hours did you sleep?", type: "number", step: "0.1", min: "0", max: "24", hint: "Example: 7.5" },
+      { key: "Steps", label: "2) How many steps did you take today?", type: "number", step: "1", min: "0", hint: "Example: 8000" },
+      { key: "KidsMinutes", label: "3) Minutes of focused time with kids?", type: "number", step: "1", min: "0" },
+      { key: "DeepWorkMinutes", label: "4) Deep work minutes completed?", type: "number", step: "1", min: "0" },
+      { key: "StrengthYN", label: "5) Did you do strength training? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "ProteinYN", label: "6) Hit protein goal? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "CaloriesYN", label: "7) Stayed within calories? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "ProactiveYN", label: "8) Was parenting proactive? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "NoEscalationYN", label: "9) No escalations? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "NoImpulseYN", label: "10) No impulse spending? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" }
+    ];
+
+    let surveyIndex = 0;
+    const surveyAnswers = {};
+
+    function setSurveyStatus(text){
+      $("surveyStatus").textContent = text;
+    }
+
+    function updateSurveyView(){
+      const q = SURVEY_QUESTIONS[surveyIndex];
+      const input = $("surveyInput");
+      $("surveyQuestion").textContent = q.label;
+      $("surveyHint").textContent = q.hint || `Question ${surveyIndex + 1} of ${SURVEY_QUESTIONS.length}`;
+
+      input.type = q.type || "text";
+      input.step = q.step || "1";
+      input.min = q.min || "";
+      input.max = q.max || "";
+      input.value = surveyAnswers[q.key] ?? "";
+
+      $("surveyPrevBtn").disabled = surveyIndex === 0;
+      $("surveyNextBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "none" : "inline-block";
+      $("surveySubmitBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "inline-block" : "none";
+    }
+
+    function storeCurrentAnswer(){
+      const q = SURVEY_QUESTIONS[surveyIndex];
+      const raw = String($("surveyInput").value || "").trim();
+      if (!raw) return false;
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return false;
+      surveyAnswers[q.key] = n;
+      return true;
+    }
+
+    function buildSurveyPayload(){
+      return {
+        Timestamp: new Date().toISOString(),
+        Date: new Date().toISOString().slice(0, 10),
+        SleepHours: surveyAnswers.SleepHours ?? 0,
+        Steps: surveyAnswers.Steps ?? 0,
+        KidsMinutes: surveyAnswers.KidsMinutes ?? 0,
+        DeepWorkMinutes: surveyAnswers.DeepWorkMinutes ?? 0,
+        StrengthYN: surveyAnswers.StrengthYN ?? 0,
+        ProteinYN: surveyAnswers.ProteinYN ?? 0,
+        CaloriesYN: surveyAnswers.CaloriesYN ?? 0,
+        ProactiveYN: surveyAnswers.ProactiveYN ?? 0,
+        NoEscalationYN: surveyAnswers.NoEscalationYN ?? 0,
+        NoImpulseYN: surveyAnswers.NoImpulseYN ?? 0,
+        FollowThroughYN: 0,
+        TrackedSpendingYN: 0,
+        InvestYN: 0,
+        Skill20YN: 0,
+        ShippedYN: 0,
+        BuildArtifactYN: 0,
+        TomorrowOneSentenceYN: 0
+      };
+    }
+
+    async function submitSurvey(){
+      if (!storeCurrentAnswer()) {
+        setSurveyStatus("Enter a valid answer before submitting.");
+        return;
+      }
+      const missing = SURVEY_QUESTIONS.filter(q => !Number.isFinite(surveyAnswers[q.key]));
+      if (missing.length) {
+        setSurveyStatus(`Please complete all questions. Missing: ${missing[0].label}`);
+        return;
+      }
+      if (!SHEET_WRITE_URL) {
+        setSurveyStatus("Set SHEET_WRITE_URL in code to your Apps Script Web App endpoint to save responses.");
+        return;
+      }
+
+      setSurveyStatus("Submitting to Google Sheet...");
+      const payload = buildSurveyPayload();
+      const res = await fetch(SHEET_WRITE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error("Submit failed. HTTP " + res.status);
+      setSurveyStatus("Saved. Refreshing dashboard...");
+      await load();
+      setSurveyStatus("Saved to sheet successfully.");
+    }
+
+    function wireSurvey(){
+      $("surveyPrevBtn").addEventListener("click", () => {
+        storeCurrentAnswer();
+        surveyIndex = Math.max(0, surveyIndex - 1);
+        updateSurveyView();
+      });
+
+      $("surveyNextBtn").addEventListener("click", () => {
+        if (!storeCurrentAnswer()) {
+          setSurveyStatus("Enter a valid answer before moving on.");
+          return;
+        }
+        surveyIndex = Math.min(SURVEY_QUESTIONS.length - 1, surveyIndex + 1);
+        updateSurveyView();
+        setSurveyStatus(`Progress: ${surveyIndex + 1}/${SURVEY_QUESTIONS.length}`);
+      });
+
+      $("surveySubmitBtn").addEventListener("click", async () => {
+        try {
+          await submitSurvey();
+        } catch (err) {
+          setSurveyStatus("Error submitting survey: " + (err?.message || String(err)));
+        }
+      });
+
+      $("surveyResetBtn").addEventListener("click", () => {
+        surveyIndex = 0;
+        Object.keys(surveyAnswers).forEach(k => delete surveyAnswers[k]);
+        updateSurveyView();
+        setSurveyStatus("Survey reset.");
+      });
+
+      updateSurveyView();
+    }
+
     async function load(){
       try{
         if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")){
@@ -779,6 +973,7 @@
 
     $("season").addEventListener("change", load);
     $("refreshBtn").addEventListener("click", load);
+    wireSurvey();
     load();
   </script>
 </body>
