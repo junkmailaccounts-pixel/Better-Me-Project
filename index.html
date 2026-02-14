@@ -813,6 +813,25 @@
       });
 
       $("writeUrlInput").value = getSheetWriteUrl();
+      const configuredUrl = getSheetWriteUrl();
+      if (configuredUrl) {
+        setSurveyStatus("Write endpoint ready. Complete all 10 questions and submit.");
+      }
+
+      $("surveyInput").addEventListener("keydown", async (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        if (surveyIndex < SURVEY_QUESTIONS.length - 1) {
+          $("surveyNextBtn").click();
+          return;
+        }
+        try {
+          await submitSurvey();
+        } catch (err) {
+          setSurveyStatus("Error submitting survey: " + (err?.message || String(err)));
+        }
+      });
+
       updateSurveyView();
     }
 
