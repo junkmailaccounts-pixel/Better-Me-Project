@@ -1,1538 +1,790 @@
-diff --git a/index.html b/index.html
-index 70517966e237e6bf84383c60710db61d11a060e0..28c6f77c4e6e882cd1149e8bc01d62d1ff63723e 100644
---- a/index.html
-+++ b/index.html
-@@ -1,1139 +1,790 @@
- <!doctype html>
- <html lang="en">
- <head>
-   <meta charset="utf-8" />
-   <meta name="viewport" content="width=device-width,initial-scale=1" />
-   <title>Life Dashboard</title>
-   <style>
-     :root{
-       color-scheme: dark;
-       --bg:#0b0f17;
-       --panel:#101827;
-       --panel2:#0f1624;
-       --text:#e6edf6;
-       --muted:#9fb0c6;
-       --border:#22314a;
-       --good:#3ddc97;
-       --warn:#f2c94c;
-       --bad:#ff6b6b;
-       --link:#8ab4ff;
--      --shadow: 0 10px 30px rgba(0,0,0,0.35);
--      --radius: 14px;
-+      --shadow:0 10px 30px rgba(0,0,0,.35);
-+      --radius:14px;
-     }
-     *{box-sizing:border-box}
-     body{
-       margin:0;
--      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
--      background: radial-gradient(1000px 700px at 20% 0%, rgba(138,180,255,0.12), transparent 60%),
--                  radial-gradient(900px 600px at 80% 0%, rgba(61,220,151,0.08), transparent 60%),
--                  var(--bg);
-+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-+      background:radial-gradient(1000px 700px at 20% 0%, rgba(138,180,255,0.12), transparent 60%),
-+        radial-gradient(900px 600px at 80% 0%, rgba(61,220,151,0.08), transparent 60%),
-+        var(--bg);
-       color:var(--text);
-       padding:24px;
-     }
--    a{color:var(--link)}
-     .wrap{max-width:1100px;margin:0 auto}
--    header{
--      display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
--      margin-bottom:18px;
--    }
--    h1{margin:0;font-size:22px;letter-spacing:0.2px}
--    .sub{
--      margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35;
--    }
--    .right{
--      text-align:right;color:var(--muted);font-size:12px;line-height:1.4;
--      max-width:380px;
--    }
--    .grid{
--      display:grid;
--      grid-template-columns: 1.2fr 0.8fr;
--      gap:14px;
--    }
--    @media (max-width: 920px){
--      .grid{grid-template-columns:1fr}
--      .right{text-align:left}
--    }
-+    header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
-+    h1{margin:0;font-size:22px}
-+    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35}
-+    .right{text-align:right;color:var(--muted);font-size:12px;line-height:1.4;max-width:420px}
-+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
-+
-     .card{
--      background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 120%),
--                  var(--panel);
-+      background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent 120%), var(--panel);
-       border:1px solid var(--border);
--      border-radius: var(--radius);
--      box-shadow: var(--shadow);
-+      border-radius:var(--radius);
-+      box-shadow:var(--shadow);
-       padding:16px;
-     }
--    .row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
--    .bigScore{
--      display:flex;align-items:baseline;gap:10px;
-+    .tabBar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-+    .tabBtn{
-+      background:rgba(255,255,255,.02);
-+      border:1px solid var(--border);
-+      color:var(--text);
-+      border-radius:999px;
-+      padding:8px 14px;
-+      font-size:13px;
-+      cursor:pointer;
-     }
--    .scoreNum{font-size:44px;font-weight:750;letter-spacing:0.3px}
-+    .tabBtn.active{background:rgba(138,180,255,0.16);border-color:#5f7ea8}
-+    .tabPanel{display:none}
-+    .tabPanel.active{display:block}
-+
-+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
-+    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-+    .row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-+    .bigScore{display:flex;align-items:baseline;gap:10px}
-+    .scoreNum{font-size:44px;font-weight:750}
-     .scoreMeta{color:var(--muted);font-size:13px}
--    .pill{
--      padding:6px 10px;border:1px solid var(--border);
--      border-radius:999px;font-size:12px;color:var(--muted);
--      background:rgba(255,255,255,0.02);
--      display:inline-flex;gap:8px;align-items:center;
--    }
-+    .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.02);display:inline-flex;gap:8px;align-items:center}
-     .dot{width:8px;height:8px;border-radius:50%}
-     .good{background:var(--good)}
-     .warn{background:var(--warn)}
-     .bad{background:var(--bad)}
--    .kpiGrid{
--      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;
--    }
--    @media (max-width: 920px){
--      .kpiGrid{grid-template-columns:1fr}
--    }
--    .kpi{
--      background: var(--panel2);
--      border:1px solid var(--border);
--      border-radius: 12px;
--      padding:12px;
--    }
-+
-+    .kpiGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
-+    .kpi{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px}
-     .kpi .label{color:var(--muted);font-size:12px}
-     .kpi .value{margin-top:6px;font-size:18px;font-weight:650}
-     .kpi .tiny{margin-top:4px;color:var(--muted);font-size:12px}
--    .sectionTitle{
--      margin:0 0 10px 0;font-size:14px;color:var(--muted);
--      letter-spacing:0.2px;text-transform:uppercase;
--    }
-+
-+    .sectionTitle{margin:0 0 10px 0;font-size:14px;color:var(--muted);text-transform:uppercase}
-     .barWrap{margin-top:10px}
--    .bar{
--      height:10px;background:#0a1220;border:1px solid var(--border);
--      border-radius:999px;overflow:hidden;
--    }
--    .bar > div{height:100%}
--    .barLegend{
--      margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;
--    }
-+    .bar{height:10px;background:#0a1220;border:1px solid var(--border);border-radius:999px;overflow:hidden}
-+    .barLegend{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}
-     .legendItem{display:flex;gap:8px;align-items:center}
--    .mini{
--      width:10px;height:10px;border-radius:3px;background:#2b3c5b;
--    }
-+    .mini{width:10px;height:10px;border-radius:3px;background:#2b3c5b}
-     .mini.h{background:rgba(61,220,151,0.85)}
-     .mini.f{background:rgba(138,180,255,0.85)}
-     .mini.c{background:rgba(242,201,76,0.95)}
-     .mini.w{background:rgba(255,107,107,0.9)}
--    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
--    @media (max-width: 920px){.twoCol{grid-template-columns:1fr}}
-+
-     table{width:100%;border-collapse:collapse;font-size:13px}
-     th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
-     th{color:var(--muted);font-weight:600}
-     .muted{color:var(--muted)}
-     .trendUp{color:var(--good);font-weight:650}
-     .trendDown{color:var(--bad);font-weight:650}
-     .trendFlat{color:var(--muted);font-weight:650}
--    .nudge{
--      border-left:4px solid var(--warn);
--      background: rgba(242,201,76,0.06);
--      padding:10px 12px;border-radius:10px;border:1px solid rgba(242,201,76,0.25);
--      color:var(--text);
--      line-height:1.35;
--    }
--    .nudge strong{font-weight:750}
--    .error{
--      border-left:4px solid var(--bad);
--      background: rgba(255,107,107,0.06);
--      padding:10px 12px;border-radius:10px;border:1px solid rgba(255,107,107,0.25);
--      color:var(--text);
--      line-height:1.35;
--    }
-+
-+    .nudge{border-left:4px solid var(--warn);background:rgba(242,201,76,0.06);padding:10px 12px;border-radius:10px;border:1px solid rgba(242,201,76,.25);line-height:1.35}
-+    .error{border-left:4px solid var(--bad);background:rgba(255,107,107,0.06);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,107,107,.25);line-height:1.35}
-     .footer{margin-top:16px;color:var(--muted);font-size:12px}
--    .controls{
--      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;
--    }
--    .select{
--      background: var(--panel2);
--      border:1px solid var(--border);
--      color:var(--text);
--      border-radius:10px;
--      padding:8px 10px;
--      font-size:12px;
--    }
--    .btn{
--      background:rgba(255,255,255,0.03);
--      border:1px solid var(--border);
--      color:var(--text);
--      border-radius:10px;
--      padding:8px 10px;
--      font-size:12px;
--      cursor:pointer;
--    }
--    .btn:hover{background:rgba(255,255,255,0.05)}
-+
-+    .select{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12px}
-+    .btn{background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer}
-+
-     .surveyCard{margin-bottom:14px}
-     .surveyTop{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
-     .surveyTitle{margin:0;font-size:16px}
-     .surveyMeta{font-size:12px;color:var(--muted)}
-     .surveyQ{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
-     .surveyLabel{font-size:14px;margin-bottom:8px}
-     .surveyControls{display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
-     .surveyInput{width:100%;background:#0b1322;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:14px}
-     .surveyHint{font-size:12px;color:var(--muted);margin-top:6px}
-+
-     .graphWrap{margin-top:14px}
-     .graphMeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:10px}
-     .graphLegend{display:flex;gap:12px;flex-wrap:wrap}
--    .graphLegend .legendItem{font-size:12px}
-     .graphSvg{width:100%;height:auto;border:1px solid var(--border);border-radius:12px;background:#0b1322}
-     .graphAxis{font-size:11px;fill:var(--muted)}
-+
-+    @media (max-width:920px){
-+      .grid,.twoCol,.kpiGrid{grid-template-columns:1fr}
-+      .right{text-align:left}
-+    }
-   </style>
- </head>
--
- <body>
-   <div class="wrap">
-     <header>
-       <div>
-         <h1>Dashboard</h1>
-         <div class="sub" id="subtitle">Loading data…</div>
-       </div>
-       <div class="right">
-         <div class="controls">
-           <label class="muted" for="season">Season</label>
-           <select id="season" class="select">
-             <option value="default">Default</option>
-             <option value="family">Family heavy</option>
-             <option value="health">Health heavy</option>
-             <option value="build">Build mode</option>
-           </select>
-           <button class="btn" id="refreshBtn" type="button">Refresh</button>
-         </div>
--        <div style="margin-top:8px" class="muted">
--          Reads from your Google Sheet CSV and writes new survey answers using your Apps Script endpoint.
--        </div>
-+        <div style="margin-top:8px" class="muted">Reads from your Google Sheet CSV and writes new survey answers using your Apps Script endpoint.</div>
-       </div>
-     </header>
- 
--    <div class="card surveyCard">
--      <div class="surveyTop">
--        <div>
--          <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
--          <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
--        </div>
--        <div class="controls">
--          <input id="writeUrlInput" class="select" type="url" placeholder="Apps Script Web App URL (.../exec)" style="min-width:320px" />
--          <button class="btn" id="saveWriteUrlBtn" type="button">Save endpoint</button>
--          <button class="btn" id="surveyResetBtn" type="button">Reset</button>
--        </div>
--      </div>
--      <div class="surveyQ">
--        <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
--        <input id="surveyInput" class="surveyInput" type="number" />
--        <div class="surveyHint" id="surveyHint"></div>
--        <div class="surveyControls">
--          <button class="btn" id="surveyPrevBtn" type="button">Back</button>
--          <button class="btn" id="surveyNextBtn" type="button">Next</button>
--          <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
--        </div>
--      </div>
-+    <div class="tabBar" role="tablist" aria-label="Dashboard sections">
-+      <button class="tabBtn active" id="dashboardTabBtn" data-tab="dashboard" type="button" role="tab" aria-selected="true">Dashboard</button>
-+      <button class="tabBtn" id="dataTabBtn" data-tab="data" type="button" role="tab" aria-selected="false">Daily check-in & data</button>
-     </div>
- 
--    <div class="grid">
-+    <section id="dashboardTab" class="tabPanel active" role="tabpanel" aria-labelledby="dashboardTabBtn">
-       <div class="card">
-         <div class="row">
-           <div class="bigScore">
-             <div class="scoreNum" id="todayScore">--</div>
-             <div class="scoreMeta">
--              <div id="todayLabel">Today score</div>
-+              <div>Today score</div>
-               <div class="muted" id="deltaLabel">--</div>
-             </div>
-           </div>
-           <div class="pill" id="statusPill">
-             <span class="dot warn"></span>
-             <span id="statusText">Loading</span>
-           </div>
-         </div>
- 
-         <div class="barWrap">
--          <div class="bar" title="Pillar contributions to Today score">
--            <div id="barInner" style="display:flex;width:100%">
--              <div id="barH" style="width:25%" class="mini h"></div>
--              <div id="barF" style="width:25%" class="mini f"></div>
--              <div id="barC" style="width:25%" class="mini c"></div>
--              <div id="barW" style="width:25%" class="mini w"></div>
--            </div>
--          </div>
-+          <div class="bar"><div id="barInner" style="display:flex;width:100%"><div id="barH" class="mini h" style="width:25%"></div><div id="barF" class="mini f" style="width:25%"></div><div id="barC" class="mini c" style="width:25%"></div><div id="barW" class="mini w" style="width:25%"></div></div></div>
-           <div class="barLegend">
-             <div class="legendItem"><span class="mini h"></span>Health <span class="muted" id="hVal">--</span></div>
-             <div class="legendItem"><span class="mini f"></span>Family <span class="muted" id="fVal">--</span></div>
-             <div class="legendItem"><span class="mini c"></span>Creation <span class="muted" id="cVal">--</span></div>
-             <div class="legendItem"><span class="mini w"></span>Wealth <span class="muted" id="wVal">--</span></div>
-           </div>
-         </div>
- 
-         <div class="kpiGrid">
--          <div class="kpi">
--            <div class="label">Trend vs yesterday</div>
--            <div class="value" id="trendArrow">--</div>
--            <div class="tiny" id="trendDetail">--</div>
-+          <div class="kpi"><div class="label">Trend vs yesterday</div><div class="value" id="trendArrow">--</div><div class="tiny" id="trendDetail">--</div></div>
-+          <div class="kpi"><div class="label">Last 7 days average</div><div class="value" id="avg7">--</div><div class="tiny" id="avg7Detail">--</div></div>
-+          <div class="kpi"><div class="label">Warnings</div><div class="value" id="warnCount">--</div><div class="tiny" id="warnDetail">--</div></div>
-+          <div class="kpi"><div class="label">Tasks completed</div><div class="value" id="tasksCompletedCount">--</div><div class="tiny" id="tasksPlanningDetail">--</div></div>
-+        </div>
-+
-+        <div style="margin-top:14px" class="nudge" id="nudgeBox"><strong>Nudge:</strong> Loading…</div>
-+      </div>
-+
-+      <div class="card graphWrap">
-+        <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
-+        <div class="graphMeta">
-+          <div id="graphSummary">Loading graph…</div>
-+          <div class="graphLegend">
-+            <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
-+            <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>5-day moving average line</div>
-           </div>
--          <div class="kpi">
--            <div class="label">Last 7 days average</div>
--            <div class="value" id="avg7">--</div>
--            <div class="tiny" id="avg7Detail">--</div>
-+        </div>
-+        <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
-+      </div>
-+    </section>
-+
-+    <section id="dataTab" class="tabPanel" role="tabpanel" aria-labelledby="dataTabBtn">
-+      <div class="card surveyCard">
-+        <div class="surveyTop">
-+          <div>
-+            <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
-+            <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
-           </div>
--          <div class="kpi">
--            <div class="label">Warnings</div>
--            <div class="value" id="warnCount">--</div>
--            <div class="tiny" id="warnDetail">--</div>
-+          <div class="controls">
-+            <input id="writeUrlInput" class="select" type="url" placeholder="Apps Script Web App URL (.../exec)" style="min-width:320px" />
-+            <button class="btn" id="saveWriteUrlBtn" type="button">Save endpoint</button>
-+            <button class="btn" id="surveyResetBtn" type="button">Reset</button>
-           </div>
--          <div class="kpi">
--            <div class="label">Tasks completed</div>
--            <div class="value" id="tasksCompletedCount">--</div>
--            <div class="tiny" id="tasksPlanningDetail">--</div>
-+        </div>
-+        <div class="surveyQ">
-+          <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
-+          <input id="surveyInput" class="surveyInput" type="number" />
-+          <div class="surveyHint" id="surveyHint"></div>
-+          <div class="surveyControls">
-+            <button class="btn" id="surveyPrevBtn" type="button">Back</button>
-+            <button class="btn" id="surveyNextBtn" type="button">Next</button>
-+            <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
-           </div>
-         </div>
-+      </div>
- 
--        <div style="margin-top:14px" class="nudge" id="nudgeBox">
--          <strong>Nudge:</strong> Loading…
-+      <div class="twoCol">
-+        <div class="card">
-+          <h2 class="sectionTitle">Recent days</h2>
-+          <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
-+          <table>
-+            <thead><tr><th>Date</th><th>Score</th><th>Health</th><th>Family</th><th>Creation</th><th>Wealth</th></tr></thead>
-+            <tbody id="recentTable"></tbody>
-+          </table>
-+          <div class="footer" id="footerNote">--</div>
-         </div>
- 
--        <div style="margin-top:12px" class="twoCol">
--          <div class="kpi">
-+        <div class="card">
-+          <h2 class="sectionTitle">Score sheet</h2>
-+          <div class="kpi" style="margin-bottom:12px">
-             <div class="label">Inputs</div>
-             <div class="tiny muted">Sleep, steps, deep work, spending triggers</div>
--            <table style="margin-top:6px">
--              <tbody id="inputsTable"></tbody>
--            </table>
-+            <table style="margin-top:6px"><tbody id="inputsTable"></tbody></table>
-           </div>
-           <div class="kpi">
-             <div class="label">Outputs</div>
-             <div class="tiny muted">Pillars and total score</div>
--            <table style="margin-top:6px">
--              <tbody id="outputsTable"></tbody>
--            </table>
-+            <table style="margin-top:6px"><tbody id="outputsTable"></tbody></table>
-           </div>
-         </div>
-       </div>
--
--      <div class="card">
--        <h2 class="sectionTitle">Recent days</h2>
--        <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
--        <table>
--          <thead>
--            <tr>
--              <th>Date</th>
--              <th>Score</th>
--              <th>Health</th>
--              <th>Family</th>
--              <th>Creation</th>
--              <th>Wealth</th>
--            </tr>
--          </thead>
--          <tbody id="recentTable"></tbody>
--        </table>
--        <div class="footer" id="footerNote">--</div>
--      </div>
--    </div>
--
--    <div class="card graphWrap">
--      <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
--      <div class="graphMeta">
--        <div id="graphSummary">Loading graph…</div>
--        <div class="graphLegend">
--          <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
--          <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>Thicker 5-day moving average line</div>
--        </div>
--      </div>
--      <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
--    </div>
-+    </section>
-   </div>
- 
-   <script>
--    // =========================
--    // 1) SET YOUR CSV URL HERE
--    // =========================
--    // You can use either:
--    // - a Google Sheets share/edit link
--    // - a direct CSV/export link
--    // Example format:
--    // https://docs.google.com/spreadsheets/d/e/<PUB_ID>/pub?gid=<GID>&single=true&output=csv
-     const CSV_URL = "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/edit?usp=sharing";
--    // Apps Script web app URL that appends POSTed JSON rows into your sheet.
--    // Example: https://script.google.com/macros/s/<SCRIPT_ID>/exec
-     const SHEET_WRITE_URL = "";
-     const SHEET_WRITE_URL_STORAGE_KEY = "betterme.sheetWriteUrl";
- 
--    function toGoogleSheetCsvUrl(url){
--      const raw = String(url || "").trim();
--      if (!raw) return "";
--
--      // Already a CSV/export endpoint.
--      if (/output=csv/.test(raw) || /tqx=out:csv/.test(raw)) return raw;
--
--      // Convert a normal sheet share/edit URL into an export URL.
--      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
--      if (!match) return raw;
--
--      let gid = "0";
--      try {
--        const u = new URL(raw);
--        gid = u.searchParams.get("gid") || gid;
--        if (u.hash) {
--          const hashMatch = u.hash.match(/gid=(\d+)/);
--          if (hashMatch) gid = hashMatch[1];
--        }
--      } catch (_) {
--        const gidMatch = raw.match(/[?&#]gid=(\d+)/);
--        gid = gidMatch ? gidMatch[1] : gid;
--      }
--
--      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
--    }
--
--    // ==========================================
--    // 2) MAP YOUR SHEET COLUMN NAMES HERE
--    // ==========================================
--    // Update these to match your exact header names in the CSV.
--    // Required:
--    // - date
--    // - totalScore (or we will compute weighted score if pillars exist)
--    // - pillars: healthScore, familyScore, creationScore, wealthScore
--    //
--    // Optional inputs you mentioned:
--    // - sleepHours, steps, deepWorkMinutes, impulseSpendCount
-     const COL = {
-       date: "Date",
-       totalScore: "Total Score",
-       healthScore: "Health",
-       familyScore: "Family",
-       creationScore: "Creation",
-       wealthScore: "Wealth",
-       sleepHours: "Sleep Hours",
-       steps: "Steps",
-       deepWorkMinutes: "Deep Work Minutes",
-       impulseSpendCount: "Impulse Spend Count"
-     };
- 
--    // ==========================================
--    // 3) SEASONAL WEIGHTS (adjust over time)
--    // ==========================================
--    // These weights are used to compute a weighted total when totalScore is missing
--    // OR to compute the "pillar contribution bar" even if totalScore exists.
-     const WEIGHTS = {
--      default: { health: 0.35, family: 0.35, creation: 0.20, wealth: 0.10 },
--      family:   { health: 0.30, family: 0.45, creation: 0.15, wealth: 0.10 },
--      health:   { health: 0.45, family: 0.30, creation: 0.15, wealth: 0.10 },
--      build:    { health: 0.30, family: 0.30, creation: 0.30, wealth: 0.10 }
--    };
--
--    // ==========================================
--    // 4) THRESHOLDS FOR WARNINGS AND NUDGES
--    // ==========================================
--    const THRESH = {
--      lowScore: 75,
--      sleepLow: 7.0,
--      stepsLow: 6000,
--      deepWorkLowMin: 60,
--      impulseSpendHigh: 1
-+      default:{health:.35,family:.35,creation:.2,wealth:.1},
-+      family:{health:.3,family:.45,creation:.15,wealth:.1},
-+      health:{health:.45,family:.3,creation:.15,wealth:.1},
-+      build:{health:.3,family:.3,creation:.3,wealth:.1}
-     };
- 
-+    const THRESH = {lowScore:75,sleepLow:7,stepsLow:6000,deepWorkLowMin:60,impulseSpendHigh:1};
-     const $ = (id) => document.getElementById(id);
- 
-+    function toGoogleSheetCsvUrl(url){
-+      const raw = String(url || "").trim();
-+      if (!raw) return "";
-+      if (/output=csv/.test(raw) || /tqx=out:csv/.test(raw)) return raw;
-+      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-+      if (!match) return raw;
-+      let gid = "0";
-+      try {
-+        const u = new URL(raw);
-+        gid = u.searchParams.get("gid") || gid;
-+        if (u.hash) gid = (u.hash.match(/gid=(\d+)/) || [])[1] || gid;
-+      } catch (_) {
-+        gid = (raw.match(/[?&#]gid=(\d+)/) || [])[1] || gid;
-+      }
-+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
-+    }
-+
-     function parseCSV(text){
--      // Simple CSV parser that handles quoted fields.
--      const rows = [];
--      let row = [];
--      let cur = "";
--      let inQuotes = false;
--
--      for (let i = 0; i < text.length; i++){
--        const c = text[i];
--        const next = text[i+1];
--
--        if (c === '"' && inQuotes && next === '"'){ // escaped quote
--          cur += '"';
--          i++;
--          continue;
--        }
--        if (c === '"'){
--          inQuotes = !inQuotes;
--          continue;
--        }
--        if (c === ',' && !inQuotes){
--          row.push(cur);
--          cur = "";
--          continue;
--        }
--        if ((c === '\n' || c === '\r') && !inQuotes){
--          if (cur.length || row.length){
--            row.push(cur);
--            rows.push(row);
--            row = [];
--            cur = "";
--          }
-+      const rows=[]; let row=[]; let cur=""; let inQuotes=false;
-+      for (let i=0;i<text.length;i++){
-+        const c=text[i], next=text[i+1];
-+        if (c==='"' && inQuotes && next==='"'){cur+='"'; i++; continue;}
-+        if (c==='"'){inQuotes=!inQuotes; continue;}
-+        if (c===',' && !inQuotes){row.push(cur); cur=""; continue;}
-+        if ((c==='\n' || c==='\r') && !inQuotes){
-+          if (cur.length || row.length){row.push(cur); rows.push(row); row=[]; cur="";}
-           continue;
-         }
-         cur += c;
-       }
--      if (cur.length || row.length){
--        row.push(cur);
--        rows.push(row);
--      }
--      if (rows.length === 0) return [];
--
--      const headers = rows[0].map(h => h.trim());
--      const data = [];
--      for (let r = 1; r < rows.length; r++){
--        const obj = {};
--        for (let c = 0; c < headers.length; c++){
--          obj[headers[c]] = (rows[r][c] ?? "").trim();
--        }
--        // Skip empty lines
--        const any = Object.values(obj).some(v => v !== "");
--        if (any) data.push(obj);
--      }
--      return data;
--    }
--
--    function cleanHeader(text){
--      return String(text || "").replace(/^﻿/, "").trim();
-+      if (cur.length || row.length){row.push(cur); rows.push(row);}
-+      if (!rows.length) return [];
-+      const headers = rows[0].map(h=>h.trim());
-+      return rows.slice(1).map(r => {
-+        const obj={}; headers.forEach((h,i)=>obj[h]=(r[i] ?? "").trim());
-+        return Object.values(obj).some(v => v !== "") ? obj : null;
-+      }).filter(Boolean);
-     }
- 
--    function findColumnName(row, preferred, fallbacks = []){
--      const keys = Object.keys(row || {});
--      const wanted = [preferred, ...fallbacks]
--        .map(cleanHeader)
--        .filter(Boolean)
--        .map(v => v.toLowerCase());
--
--      for (const key of keys){
--        const normalized = cleanHeader(key).toLowerCase();
--        if (wanted.includes(normalized)) return key;
--      }
--
--      return null;
-+    const cleanHeader = (text) => String(text || "").replace(/^﻿/,"").trim();
-+    function findColumnName(row, preferred, fallbacks=[]){
-+      const keys=Object.keys(row || {});
-+      const wanted=[preferred,...fallbacks].map(cleanHeader).filter(Boolean).map(v=>v.toLowerCase());
-+      return keys.find(k => wanted.includes(cleanHeader(k).toLowerCase())) || null;
-     }
--
--    function valueFromRow(row, preferred, fallbacks = []){
--      const key = findColumnName(row, preferred, fallbacks);
--      return key ? row[key] : undefined;
-+    function valueFromRow(row, preferred, fallbacks=[]){
-+      const k=findColumnName(row, preferred, fallbacks);
-+      return k ? row[k] : undefined;
-     }
--
-     function toNum(v){
--      if (v === null || v === undefined) return null;
--      const s = String(v).replace(/[^0-9.\-]/g,"").trim();
-+      if (v == null) return null;
-+      const s = String(v).replace(/[^0-9.\-]/g, "").trim();
-       if (!s) return null;
-       const n = Number(s);
-       return Number.isFinite(n) ? n : null;
-     }
- 
-     function parseDate(v){
-       const raw = String(v || "").trim();
-       if (!raw) return null;
--
-       if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
--        const d = new Date(raw.slice(0, 10) + "T00:00:00");
-+        const d = new Date(raw.slice(0,10) + "T00:00:00");
-         return Number.isNaN(d.getTime()) ? null : d;
-       }
--
--      const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?/);
--      if (mdy) {
--        const mm = mdy[1].padStart(2, "0");
--        const dd = mdy[2].padStart(2, "0");
-+      const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-+      if (mdy){
-         const yyyy = mdy[3].length === 2 ? `20${mdy[3]}` : mdy[3];
-+        const mm = mdy[1].padStart(2,"0"), dd=mdy[2].padStart(2,"0");
-         const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
-         return Number.isNaN(d.getTime()) ? null : d;
-       }
--
-       const d = new Date(raw);
-       return Number.isNaN(d.getTime()) ? null : d;
-     }
- 
--    function movingAverage(values, windowSize){
-+    function movingAverage(values, n){
-       return values.map((_, i) => {
--        const start = Math.max(0, i - windowSize + 1);
--        const windowVals = values.slice(start, i + 1).filter(Number.isFinite);
--        if (!windowVals.length) return null;
--        return windowVals.reduce((sum, n) => sum + n, 0) / windowVals.length;
-+        const win = values.slice(Math.max(0, i-n+1), i+1).filter(Number.isFinite);
-+        if (!win.length) return null;
-+        return win.reduce((a,b)=>a+b,0)/win.length;
-       });
-     }
--
--    function buildLinePath(points){
--      if (!points.length) return "";
--      return points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
--    }
-+    function buildLinePath(points){return points.map((p,i)=>`${i?"L":"M"}${p.x},${p.y}`).join(" ");}
- 
-     function renderTrendGraph(rows){
-       const svg = $("trendGraph");
--      if (!svg) return;
--
--      const series = rows.slice(Math.max(0, rows.length - 30));
--      const scores = series.map(r => r.score);
--      const avg5 = movingAverage(scores, 5);
--      const values = [...scores, ...avg5].filter(Number.isFinite);
--
--      if (!series.length || !values.length) {
--        svg.innerHTML = "";
--        $("graphSummary").textContent = "No chart data available yet.";
--        return;
--      }
--
--      const width = 960;
--      const height = 320;
--      const pad = { top: 18, right: 22, bottom: 34, left: 42 };
--      const plotW = width - pad.left - pad.right;
--      const plotH = height - pad.top - pad.bottom;
--
--      const minY = Math.max(0, Math.floor(Math.min(...values) - 5));
--      const maxY = Math.min(100, Math.ceil(Math.max(...values) + 5));
--      const spanY = Math.max(1, maxY - minY);
--
--      const xAt = (i) => pad.left + (plotW * i) / Math.max(1, series.length - 1);
--      const yAt = (v) => pad.top + plotH - ((v - minY) / spanY) * plotH;
--
--      const dailyPoints = scores
--        .map((v, i) => Number.isFinite(v) ? ({ x: xAt(i), y: yAt(v), v, i }) : null)
--        .filter(Boolean);
--      const avgPoints = avg5
--        .map((v, i) => Number.isFinite(v) ? ({ x: xAt(i), y: yAt(v), v, i }) : null)
--        .filter(Boolean);
--
--      const yTicks = 5;
--      const tickLines = Array.from({ length: yTicks + 1 }, (_, idx) => {
--        const t = idx / yTicks;
--        const y = pad.top + plotH * t;
--        const val = Math.round(maxY - (spanY * t));
--        return `
--          <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" stroke="#22314a" stroke-width="1" opacity="0.7" />
--          <text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" class="graphAxis">${val}</text>
--        `;
-+      const series = rows.slice(Math.max(0, rows.length-30));
-+      const scores = series.map(r=>r.score);
-+      const avg5 = movingAverage(scores,5);
-+      const values = [...scores,...avg5].filter(Number.isFinite);
-+      if (!series.length || !values.length){svg.innerHTML=""; $("graphSummary").textContent="No chart data available yet."; return;}
-+
-+      const width=960, height=320;
-+      const pad={top:18,right:22,bottom:34,left:42};
-+      const plotW=width-pad.left-pad.right, plotH=height-pad.top-pad.bottom;
-+      const minY=Math.max(0, Math.floor(Math.min(...values)-5));
-+      const maxY=Math.min(100, Math.ceil(Math.max(...values)+5));
-+      const spanY=Math.max(1,maxY-minY);
-+      const xAt=(i)=>pad.left + (plotW*i)/Math.max(1,series.length-1);
-+      const yAt=(v)=>pad.top + plotH - ((v-minY)/spanY)*plotH;
-+
-+      const daily = scores.map((v,i)=>Number.isFinite(v)?({x:xAt(i),y:yAt(v),i,v}):null).filter(Boolean);
-+      const avg = avg5.map((v,i)=>Number.isFinite(v)?({x:xAt(i),y:yAt(v)}):null).filter(Boolean);
-+
-+      const ticks = Array.from({length:6}, (_,idx) => {
-+        const t=idx/5, y=pad.top+plotH*t, val=Math.round(maxY-(spanY*t));
-+        return `<line x1="${pad.left}" y1="${y}" x2="${width-pad.right}" y2="${y}" stroke="#22314a" stroke-width="1" opacity="0.7" /><text x="${pad.left-8}" y="${y+4}" text-anchor="end" class="graphAxis">${val}</text>`;
-       }).join("");
- 
-       const xFirst = series[0].dateText || series[0].date.toISOString().slice(0,10);
--      const xLast = series[series.length - 1].dateText || series[series.length - 1].date.toISOString().slice(0,10);
-+      const xLast = series[series.length-1].dateText || series[series.length-1].date.toISOString().slice(0,10);
- 
-       svg.innerHTML = `
-         <rect x="0" y="0" width="${width}" height="${height}" fill="transparent"></rect>
--        ${tickLines}
--        <line x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}" stroke="#405473" stroke-width="1.2" />
--        <path d="${buildLinePath(dailyPoints)}" fill="none" stroke="#8ab4ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.95" />
--        <path d="${buildLinePath(avgPoints)}" fill="none" stroke="#3ddc97" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
--        ${dailyPoints.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.2" fill="#8ab4ff"><title>${series[p.i].date.toISOString().slice(0,10)}: ${fmt(p.v,0)}</title></circle>`).join("")}
--        <text x="${pad.left}" y="${height - 10}" class="graphAxis">${xFirst}</text>
--        <text x="${width - pad.right}" y="${height - 10}" text-anchor="end" class="graphAxis">${xLast}</text>
-+        ${ticks}
-+        <line x1="${pad.left}" y1="${height-pad.bottom}" x2="${width-pad.right}" y2="${height-pad.bottom}" stroke="#405473" stroke-width="1.2" />
-+        <path d="${buildLinePath(daily)}" fill="none" stroke="#8ab4ff" stroke-width="2" />
-+        <path d="${buildLinePath(avg)}" fill="none" stroke="#3ddc97" stroke-width="5" opacity="0.85" />
-+        ${daily.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3.2" fill="#8ab4ff"><title>${series[p.i].date.toISOString().slice(0,10)}: ${fmt(p.v,0)}</title></circle>`).join("")}
-+        <text x="${pad.left}" y="${height-10}" class="graphAxis">${xFirst}</text>
-+        <text x="${width-pad.right}" y="${height-10}" text-anchor="end" class="graphAxis">${xLast}</text>
-       `;
- 
--      const latestAvg5 = avg5[avg5.length - 1];
--      $("graphSummary").textContent = `Showing ${series.length} days. Latest score: ${fmt(scores[scores.length - 1],0)} | Latest 5-day moving average: ${fmt(latestAvg5,1)}.`;
--    }
--
--    function fmt(n, digits=0){
--      if (n === null || n === undefined || !Number.isFinite(n)) return "--";
--      return n.toFixed(digits);
-+      $("graphSummary").textContent = `Showing ${series.length} days. Latest score: ${fmt(scores[scores.length-1],0)} | Latest 5-day moving average: ${fmt(avg5[avg5.length-1],1)}.`;
-     }
- 
-+    function fmt(n, digits=0){return Number.isFinite(n) ? n.toFixed(digits) : "--";}
-     function trendArrow(delta){
--      if (!Number.isFinite(delta)) return {txt:"--", cls:"trendFlat"};
--      if (delta > 0.5) return {txt:"▲ Up", cls:"trendUp"};
--      if (delta < -0.5) return {txt:"▼ Down", cls:"trendDown"};
--      return {txt:"▬ Flat", cls:"trendFlat"};
--    }
--
--    function pickSeasonWeights(){
--      const key = $("season").value || "default";
--      return WEIGHTS[key] || WEIGHTS.default;
-+      if (!Number.isFinite(delta)) return {txt:"--",cls:"trendFlat"};
-+      if (delta > 0.5) return {txt:"▲ Up",cls:"trendUp"};
-+      if (delta < -0.5) return {txt:"▼ Down",cls:"trendDown"};
-+      return {txt:"▬ Flat",cls:"trendFlat"};
-     }
-+    function pickSeasonWeights(){return WEIGHTS[$("season").value] || WEIGHTS.default;}
- 
-     function computeWeightedTotal(p, w){
--      if (![p.health, p.family, p.creation, p.wealth].every(x => Number.isFinite(x))) return null;
--
--      // Support either 0-25 pillar inputs (habit scoring) or 0-100 pillar inputs.
--      const maxPillar = Math.max(p.health, p.family, p.creation, p.wealth);
--      const scale = maxPillar <= 25 ? 4 : 1;
--
-+      if (![p.health,p.family,p.creation,p.wealth].every(Number.isFinite)) return null;
-+      const scale = Math.max(p.health,p.family,p.creation,p.wealth) <= 25 ? 4 : 1;
-       return (p.health*scale)*w.health + (p.family*scale)*w.family + (p.creation*scale)*w.creation + (p.wealth*scale)*w.wealth;
-     }
- 
-     function statusForScore(score){
--      if (!Number.isFinite(score)) return {label:"No data", dot:"warn"};
--      if (score >= 85) return {label:"On track", dot:"good"};
--      if (score >= THRESH.lowScore) return {label:"Watch it", dot:"warn"};
--      return {label:"Needs attention", dot:"bad"};
-+      if (!Number.isFinite(score)) return {label:"No data",dot:"warn"};
-+      if (score >= 85) return {label:"On track",dot:"good"};
-+      if (score >= THRESH.lowScore) return {label:"Watch it",dot:"warn"};
-+      return {label:"Needs attention",dot:"bad"};
-     }
- 
-     function buildNudge(last3){
--      // last3: most recent 3 rows
--      // Priority: repeated misses in the last 2-3 days
--      let misses = [];
--      const recent = last3.filter(x => x);
--
-+      const recent = last3 || [];
-       const sleepMiss = recent.filter(x => Number.isFinite(x.sleep) && x.sleep < THRESH.sleepLow).length;
-       const stepsMiss = recent.filter(x => Number.isFinite(x.steps) && x.steps < THRESH.stepsLow).length;
--      const deepMiss  = recent.filter(x => Number.isFinite(x.deep) && x.deep < THRESH.deepWorkLowMin).length;
-+      const deepMiss = recent.filter(x => Number.isFinite(x.deep) && x.deep < THRESH.deepWorkLowMin).length;
-       const spendHigh = recent.filter(x => Number.isFinite(x.impulse) && x.impulse > THRESH.impulseSpendHigh).length;
--      const scoreLow  = recent.filter(x => Number.isFinite(x.score) && x.score < THRESH.lowScore).length;
--
--      if (scoreLow >= 2) misses.push("Your score has been low for two of the last three days. Pick one lever and fix it today.");
--      if (sleepMiss >= 2) misses.push("Sleep is slipping. Protect your bedtime and aim for at least " + THRESH.sleepLow + " hours.");
--      if (deepMiss >= 2)  misses.push("Deep work has been light. Block 60 to 90 minutes early today.");
--      if (stepsMiss >= 2) misses.push("Movement is low. Get a short walk in before lunch.");
--      if (spendHigh >= 1) misses.push("Spending triggers showed up recently. Pause one day before any non essential purchase.");
--
--      if (misses.length === 0) {
--        return "You are steady. Keep the basics tight today. Sleep, a focused block, and one family connection.";
--      }
--
--      // Choose the top 2
--      return misses.slice(0,2).join(" ");
-+      const scoreLow = recent.filter(x => Number.isFinite(x.score) && x.score < THRESH.lowScore).length;
-+      if (scoreLow >= 2) return "Your score is dipping. Protect sleep + deep work first today.";
-+      if (sleepMiss >= 2) return "Sleep has been low recently. Consider an earlier cutoff tonight.";
-+      if (deepMiss >= 2) return "Deep work has been low. Block one protected 60-minute focus sprint.";
-+      if (stepsMiss >= 2) return "Movement is under target. Add a walk break before dinner.";
-+      if (spendHigh >= 2) return "Impulse spending is elevated. Add a 24-hour pause for non-essential buys.";
-+      return "Keep stacking consistency. One strong day can reset the whole week.";
-     }
- 
-     function buildWarnings(row){
--      const warns = [];
-+      const warns=[];
-       if (Number.isFinite(row.score) && row.score < THRESH.lowScore) warns.push("Low score");
-       if (Number.isFinite(row.sleep) && row.sleep < THRESH.sleepLow) warns.push("Low sleep");
-       if (Number.isFinite(row.steps) && row.steps < THRESH.stepsLow) warns.push("Low steps");
-       if (Number.isFinite(row.deep) && row.deep < THRESH.deepWorkLowMin) warns.push("Low deep work");
-       if (Number.isFinite(row.impulse) && row.impulse > THRESH.impulseSpendHigh) warns.push("Impulse spend");
-       return warns;
-     }
- 
-     function boolNum(v){
-+      const s = String(v ?? "").trim().toLowerCase();
-+      if (["1","y","yes","true"].includes(s)) return 1;
-+      if (["0","n","no","false"].includes(s)) return 0;
-       const n = toNum(v);
-       return Number.isFinite(n) ? (n > 0 ? 1 : 0) : 0;
-     }
- 
-     function pointsByBands(value, bands){
--      for (const [min, pts] of bands){
--        if (value >= min) return pts;
--      }
-+      if (!Number.isFinite(value)) return 0;
-+      for (const band of bands){ if (value >= band.min) return band.points; }
-       return 0;
-     }
- 
-     function derivePillarsFromHabits(row){
--      const sleep = toNum(valueFromRow(row, "SleepHours", ["Sleep Hours", "sleepHours"])) || 0;
--      const steps = toNum(valueFromRow(row, "Steps", ["steps"])) || 0;
--      const kidsMin = toNum(valueFromRow(row, "KidsMinutes", ["Kids Minutes"])) || 0;
--      const deepMin = toNum(valueFromRow(row, "DeepWorkMinutes", ["Deep Work Minutes", "deepWorkMinutes"])) || 0;
--
--      const health =
--        pointsByBands(sleep, [[7, 8], [6, 6], [5, 3]]) +
--        pointsByBands(steps, [[10000, 6], [7000, 4], [4000, 2]]) +
--        boolNum(valueFromRow(row, "StrengthYN", ["Strength YN"])) * 4 +
--        boolNum(valueFromRow(row, "ProteinYN", ["Protein YN"])) * 3 +
--        boolNum(valueFromRow(row, "CaloriesYN", ["Calories YN"])) * 4;
--
--      const family =
--        pointsByBands(kidsMin, [[60, 10], [30, 7], [15, 4], [1, 2]]) +
--        boolNum(valueFromRow(row, "ProactiveYN", ["Proactive YN"])) * 5 +
--        boolNum(valueFromRow(row, "FollowThroughYN", ["Follow Through YN"])) * 5 +
--        boolNum(valueFromRow(row, "NoEscalationYN", ["No Escalation YN"])) * 5;
--
--      const wealth =
--        boolNum(valueFromRow(row, "NoImpulseYN", ["No Impulse YN"])) * 8 +
--        boolNum(valueFromRow(row, "TrackedSpendingYN", ["Tracked Spending YN"])) * 5 +
--        boolNum(valueFromRow(row, "InvestYN", ["Invest YN"])) * 7 +
--        boolNum(valueFromRow(row, "Skill20YN", ["Skill20 YN"])) * 5;
--
--      const creation =
--        pointsByBands(deepMin, [[120, 10], [60, 7], [30, 4], [1, 2]]) +
--        boolNum(valueFromRow(row, "ShippedYN", ["Shipped YN"])) * 7 +
--        boolNum(valueFromRow(row, "BuildArtifactYN", ["Build Artifact YN"])) * 5 +
--        boolNum(valueFromRow(row, "TomorrowOneSentenceYN", ["Tomorrow One Sentence YN"])) * 3;
--
--      return { health, family, creation, wealth };
-+      const sleep = toNum(valueFromRow(row, "SleepHours", ["Sleep Hours"]));
-+      const steps = toNum(valueFromRow(row, "Steps"));
-+      const deep = toNum(valueFromRow(row, "DeepWorkMinutes", ["Deep Work Minutes"]));
-+      const kids = toNum(valueFromRow(row, "KidsMinutes", ["Family Minutes"]));
-+      const strength = boolNum(valueFromRow(row, "StrengthYN", ["Strength YN"]));
-+      const protein = boolNum(valueFromRow(row, "ProteinYN", ["Protein YN"]));
-+      const calories = boolNum(valueFromRow(row, "CaloriesYN", ["Calories YN"]));
-+      const proactive = boolNum(valueFromRow(row, "ProactiveYN", ["Proactive YN"]));
-+      const noEsc = boolNum(valueFromRow(row, "NoEscalationYN", ["No Escalation YN"]));
-+      const noImp = boolNum(valueFromRow(row, "NoImpulseYN", ["No Impulse YN"]));
-+      const tasks = toNum(valueFromRow(row, "TasksCompleted", ["Tasks Completed"])) || 0;
-+      const planning = boolNum(valueFromRow(row, "PlanningYN", ["Planning Done"]));
-+
-+      const health = pointsByBands(sleep,[{min:8,points:10},{min:7.5,points:8},{min:7,points:6},{min:6.5,points:4},{min:0,points:2}])
-+        + pointsByBands(steps,[{min:12000,points:8},{min:9000,points:6},{min:7000,points:4},{min:5000,points:2},{min:0,points:0}])
-+        + (strength?4:0) + (protein?2:0) + (calories?1:0);
-+      const family = pointsByBands(kids,[{min:90,points:15},{min:60,points:12},{min:45,points:8},{min:20,points:4},{min:0,points:0}]) + (proactive?5:0) + (noEsc?5:0);
-+      const creation = pointsByBands(deep,[{min:180,points:20},{min:120,points:15},{min:90,points:10},{min:60,points:6},{min:0,points:0}]) + Math.min(5, Math.max(0, tasks));
-+      const wealth = (noImp?15:0) + (planning?10:0);
-+      return {health,family,creation,wealth};
-     }
- 
-     function setDotClass(el, dot){
-+      if (!el) return;
-       const d = el.querySelector(".dot");
--      d.classList.remove("good","warn","bad");
--      d.classList.add(dot);
-+      if (!d) return;
-+      d.className = `dot ${dot}`;
-     }
- 
-     const SURVEY_QUESTIONS = [
--      { key: "SleepHours", label: "1) How many hours did you sleep?", type: "number", step: "0.1", min: "0", max: "24", hint: "Example: 7.5" },
--      { key: "Steps", label: "2) How many steps did you take today?", type: "number", step: "1", min: "0", hint: "Example: 8000" },
--      { key: "KidsMinutes", label: "3) Minutes of focused time with kids?", type: "number", step: "1", min: "0" },
--      { key: "DeepWorkMinutes", label: "4) Deep work minutes completed?", type: "number", step: "1", min: "0" },
--      { key: "StrengthYN", label: "5) Did you do strength training? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "ProteinYN", label: "6) Hit protein goal? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "CaloriesYN", label: "7) Stayed within calories? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "ProactiveYN", label: "8) Was parenting proactive? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "NoEscalationYN", label: "9) No escalations? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "NoImpulseYN", label: "10) No impulse spending? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
--      { key: "TasksCompleted", label: "11) How many tasks did you complete today?", type: "number", step: "1", min: "0", hint: "Count completed tasks from your list" },
--      { key: "PlanningYN", label: "12) Did you do daily planning/task orientation? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1", hint: "Use 1 if you planned your tasks before/during the day" }
-+      { key:"SleepHours", label:"How many hours did you sleep last night?", min:0, max:24, step:.1, hint:"Example: 7.5" },
-+      { key:"Steps", label:"How many steps did you get today?", min:0, max:100000, step:1 },
-+      { key:"KidsMinutes", label:"How many quality minutes with kids/family?", min:0, max:1440, step:1 },
-+      { key:"DeepWorkMinutes", label:"How many deep-work minutes?", min:0, max:1440, step:1 },
-+      { key:"StrengthYN", label:"Did you complete strength training? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"ProteinYN", label:"Did you hit your protein target? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"CaloriesYN", label:"Did you stay within calorie target? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"ProactiveYN", label:"Did you proactively connect with family? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"NoEscalationYN", label:"Did you avoid escalation/friction? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"NoImpulseYN", label:"No impulse spending today? (1=yes, 0=no)", min:0, max:1, step:1 },
-+      { key:"TasksCompleted", label:"How many priority tasks did you complete?", min:0, max:50, step:1 },
-+      { key:"PlanningYN", label:"Did you complete next-day planning? (1=yes, 0=no)", min:0, max:1, step:1 }
-     ];
- 
-     let surveyIndex = 0;
-     const surveyAnswers = {};
- 
--    function setSurveyStatus(text){
--      $("surveyStatus").textContent = text;
--    }
--
--    function getSheetWriteUrl(){
--      const stored = localStorage.getItem(SHEET_WRITE_URL_STORAGE_KEY) || "";
--      return String(stored || SHEET_WRITE_URL || "").trim();
--    }
--
-+    function setSurveyStatus(text){ $("surveyStatus").textContent = text; }
-+    function getSheetWriteUrl(){ return String(localStorage.getItem(SHEET_WRITE_URL_STORAGE_KEY) || SHEET_WRITE_URL || "").trim(); }
-     function setSheetWriteUrl(url){
--      const normalized = String(url || "").trim();
--      if (!normalized) {
--        localStorage.removeItem(SHEET_WRITE_URL_STORAGE_KEY);
--        return;
--      }
--      localStorage.setItem(SHEET_WRITE_URL_STORAGE_KEY, normalized);
-+      const v = String(url || "").trim();
-+      if (!v) localStorage.removeItem(SHEET_WRITE_URL_STORAGE_KEY);
-+      else localStorage.setItem(SHEET_WRITE_URL_STORAGE_KEY, v);
-     }
- 
-     function updateSurveyView(){
-       const q = SURVEY_QUESTIONS[surveyIndex];
-       const input = $("surveyInput");
-       $("surveyQuestion").textContent = q.label;
-       $("surveyHint").textContent = q.hint || `Question ${surveyIndex + 1} of ${SURVEY_QUESTIONS.length}`;
--
--      input.type = q.type || "text";
--      input.step = q.step || "1";
--      input.min = q.min || "";
--      input.max = q.max || "";
-+      input.min = q.min; input.max = q.max; input.step = q.step || 1;
-       input.value = surveyAnswers[q.key] ?? "";
--
-       $("surveyPrevBtn").disabled = surveyIndex === 0;
-       $("surveyNextBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "none" : "inline-block";
-       $("surveySubmitBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "inline-block" : "none";
-+      input.focus();
-     }
- 
-     function storeCurrentAnswer(){
-       const q = SURVEY_QUESTIONS[surveyIndex];
-       const raw = String($("surveyInput").value || "").trim();
--      if (!raw) return false;
-       const n = Number(raw);
--      if (!Number.isFinite(n)) return false;
-+      if (!Number.isFinite(n) || n < q.min || n > q.max) return false;
-       surveyAnswers[q.key] = n;
-       return true;
-     }
- 
-     function buildSurveyPayload(){
-       return {
-         Timestamp: new Date().toISOString(),
--        Date: new Date().toISOString().slice(0, 10),
-         SleepHours: surveyAnswers.SleepHours ?? 0,
-         Steps: surveyAnswers.Steps ?? 0,
-         KidsMinutes: surveyAnswers.KidsMinutes ?? 0,
-         DeepWorkMinutes: surveyAnswers.DeepWorkMinutes ?? 0,
-         StrengthYN: surveyAnswers.StrengthYN ?? 0,
-         ProteinYN: surveyAnswers.ProteinYN ?? 0,
-         CaloriesYN: surveyAnswers.CaloriesYN ?? 0,
-         ProactiveYN: surveyAnswers.ProactiveYN ?? 0,
-         NoEscalationYN: surveyAnswers.NoEscalationYN ?? 0,
-         NoImpulseYN: surveyAnswers.NoImpulseYN ?? 0,
-         TasksCompleted: surveyAnswers.TasksCompleted ?? 0,
--        PlanningYN: surveyAnswers.PlanningYN ?? 0,
--        FollowThroughYN: 0,
--        TrackedSpendingYN: 0,
--        InvestYN: 0,
--        Skill20YN: 0,
--        ShippedYN: 0,
--        BuildArtifactYN: 0,
--        TomorrowOneSentenceYN: 0
-+        PlanningYN: surveyAnswers.PlanningYN ?? 0
-       };
-     }
- 
-     async function submitSurvey(){
-       if (!storeCurrentAnswer()) {
-         setSurveyStatus("Enter a valid answer before submitting.");
-         return;
-       }
-       const missing = SURVEY_QUESTIONS.filter(q => !Number.isFinite(surveyAnswers[q.key]));
--      if (missing.length) {
--        setSurveyStatus(`Please complete all questions. Missing: ${missing[0].label}`);
--        return;
--      }
--      const sheetWriteUrl = getSheetWriteUrl();
--      if (!sheetWriteUrl) {
--        setSurveyStatus("Set your Apps Script endpoint in the 'Apps Script Web App URL' box and click Save endpoint.");
--        return;
--      }
-+      if (missing.length){ setSurveyStatus(`Please complete all questions. Missing: ${missing[0].label}`); return; }
- 
--      setSurveyStatus("Submitting to Google Sheet...");
--      const payload = buildSurveyPayload();
--      const res = await fetch(sheetWriteUrl, {
--        method: "POST",
--        // Avoid custom headers so this stays a "simple request" and works with
--        // Apps Script web apps that do not implement CORS preflight/OPTIONS.
--        body: JSON.stringify(payload)
--      });
-+      const writeUrl = getSheetWriteUrl();
-+      if (!writeUrl){ setSurveyStatus("Set your Apps Script endpoint URL, then click Save endpoint."); return; }
- 
-+      setSurveyStatus("Submitting to Google Sheet...");
-+      const res = await fetch(writeUrl, { method:"POST", body: JSON.stringify(buildSurveyPayload()) });
-       const bodyText = await res.text();
--      if (!res.ok) {
--        const sample = bodyText ? bodyText.slice(0, 180).replace(/\s+/g, " ") : "";
--        throw new Error(`Submit failed (HTTP ${res.status}). ${sample}`.trim());
--      }
--
--      if (/^<!doctype html>/i.test(bodyText.trim())) {
--        setSurveyStatus("Sheet endpoint returned HTML. Confirm you used the Apps Script /exec URL, not a page URL.");
--        return;
--      }
-+      if (!res.ok) throw new Error(`Submit failed (HTTP ${res.status}). ${(bodyText || "").slice(0,180)}`.trim());
-+      if (/^<!doctype html>/i.test(bodyText.trim())) { setSurveyStatus("Endpoint returned HTML. Use the deployed Apps Script /exec URL."); return; }
- 
-       setSurveyStatus("Saved. Refreshing dashboard...");
-       await load();
-       setSurveyStatus("Saved to sheet successfully.");
-     }
- 
-     function wireSurvey(){
-       $("surveyPrevBtn").addEventListener("click", () => {
-         storeCurrentAnswer();
-         surveyIndex = Math.max(0, surveyIndex - 1);
-         updateSurveyView();
-       });
- 
-       $("surveyNextBtn").addEventListener("click", () => {
--        if (!storeCurrentAnswer()) {
--          setSurveyStatus("Enter a valid answer before moving on.");
--          return;
--        }
-+        if (!storeCurrentAnswer()) { setSurveyStatus("Enter a valid answer before moving on."); return; }
-         surveyIndex = Math.min(SURVEY_QUESTIONS.length - 1, surveyIndex + 1);
--        updateSurveyView();
-         setSurveyStatus(`Progress: ${surveyIndex + 1}/${SURVEY_QUESTIONS.length}`);
-+        updateSurveyView();
-       });
- 
-       $("surveySubmitBtn").addEventListener("click", async () => {
--        try {
--          await submitSurvey();
--        } catch (err) {
--          setSurveyStatus("Error submitting survey: " + (err?.message || String(err)));
--        }
-+        try { await submitSurvey(); }
-+        catch (err) { setSurveyStatus("Error submitting survey: " + (err?.message || String(err))); }
-       });
- 
-       $("saveWriteUrlBtn").addEventListener("click", () => {
-         const url = String($("writeUrlInput").value || "").trim();
--        if (!url) {
--          setSheetWriteUrl("");
--          setSurveyStatus("Write endpoint cleared.");
--          return;
--        }
--        if (!/^https:\/\//i.test(url)) {
--          setSurveyStatus("Endpoint must be a valid https URL.");
--          return;
--        }
--        if (!/\/exec(?:$|[?#])/.test(url)) {
--          setSurveyStatus("Use the deployed Apps Script Web App URL ending in /exec.");
--          return;
--        }
-+        if (!url) { setSheetWriteUrl(""); setSurveyStatus("Write endpoint cleared."); return; }
-+        if (!/^https:\/\//i.test(url)) { setSurveyStatus("Endpoint must be a valid https URL."); return; }
-+        if (!/\/exec(?:$|[?#])/.test(url)) { setSurveyStatus("Use the deployed Apps Script Web App URL ending in /exec."); return; }
-         setSheetWriteUrl(url);
-         setSurveyStatus("Write endpoint saved.");
-       });
- 
-       $("surveyResetBtn").addEventListener("click", () => {
-         surveyIndex = 0;
-         Object.keys(surveyAnswers).forEach(k => delete surveyAnswers[k]);
--        updateSurveyView();
-         setSurveyStatus("Survey reset.");
-+        updateSurveyView();
-       });
- 
-       $("writeUrlInput").value = getSheetWriteUrl();
--      const configuredUrl = getSheetWriteUrl();
--      if (configuredUrl) {
--        setSurveyStatus(`Write endpoint ready. Complete all ${SURVEY_QUESTIONS.length} questions and submit.`);
--      }
-+      if (getSheetWriteUrl()) setSurveyStatus(`Write endpoint ready. Complete all ${SURVEY_QUESTIONS.length} questions and submit.`);
- 
-       $("surveyInput").addEventListener("keydown", async (event) => {
-         if (event.key !== "Enter") return;
-         event.preventDefault();
--        if (surveyIndex < SURVEY_QUESTIONS.length - 1) {
--          $("surveyNextBtn").click();
--          return;
--        }
--        try {
--          await submitSurvey();
--        } catch (err) {
--          setSurveyStatus("Error submitting survey: " + (err?.message || String(err)));
--        }
-+        if (surveyIndex < SURVEY_QUESTIONS.length - 1) { $("surveyNextBtn").click(); return; }
-+        try { await submitSurvey(); }
-+        catch (err) { setSurveyStatus("Error submitting survey: " + (err?.message || String(err))); }
-       });
- 
-       updateSurveyView();
-     }
- 
--    async function load(){
--      try{
--        if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")){
--          throw new Error("CSV_URL is not set. Paste your published Google Sheets CSV link into CSV_URL.");
--        }
-+    function wireTabs(){
-+      const buttons = Array.from(document.querySelectorAll(".tabBtn"));
-+      const panels = { dashboard: $("dashboardTab"), data: $("dataTab") };
-+      buttons.forEach(btn => {
-+        btn.addEventListener("click", () => {
-+          const tab = btn.dataset.tab;
-+          buttons.forEach(b => {
-+            const active = b === btn;
-+            b.classList.toggle("active", active);
-+            b.setAttribute("aria-selected", active ? "true" : "false");
-+          });
-+          Object.entries(panels).forEach(([key, panel]) => panel.classList.toggle("active", key === tab));
-+        });
-+      });
-+    }
- 
--        const csvUrl = toGoogleSheetCsvUrl(CSV_URL);
--        const res = await fetch(csvUrl, { cache: "no-store" });
-+    async function load(){
-+      try {
-+        if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")) throw new Error("CSV_URL is not set.");
-+        const res = await fetch(toGoogleSheetCsvUrl(CSV_URL), { cache:"no-store" });
-         if (!res.ok) throw new Error("Failed to load CSV. HTTP " + res.status);
--        const text = await res.text();
-+        const raw = parseCSV(await res.text());
- 
--        const raw = parseCSV(text);
--
--        // Normalize rows
-         const rows = raw.map(r => {
--          const dateVal = valueFromRow(r, COL.date, ["Timestamp", "timestamp", "Day", "day"]);
-+          const dateVal = valueFromRow(r, COL.date, ["Timestamp","Day"]);
-           const d = parseDate(dateVal);
-+
-           let health = toNum(valueFromRow(r, COL.healthScore, ["HealthScore"]));
-           let family = toNum(valueFromRow(r, COL.familyScore, ["FamilyScore"]));
-           let creation = toNum(valueFromRow(r, COL.creationScore, ["CreationScore"]));
-           let wealth = toNum(valueFromRow(r, COL.wealthScore, ["WealthScore"]));
--
--          if (![health, family, creation, wealth].every(Number.isFinite)) {
-+          if (![health,family,creation,wealth].every(Number.isFinite)) {
-             const derived = derivePillarsFromHabits(r);
-             health = Number.isFinite(health) ? health : derived.health;
-             family = Number.isFinite(family) ? family : derived.family;
-             creation = Number.isFinite(creation) ? creation : derived.creation;
-             wealth = Number.isFinite(wealth) ? wealth : derived.wealth;
-           }
--          const total = toNum(valueFromRow(r, COL.totalScore, ["Score", "Total"]));
--
--          const sleep = toNum(valueFromRow(r, COL.sleepHours, ["SleepHours"]));
--          const steps = toNum(valueFromRow(r, COL.steps));
--          const deep = toNum(valueFromRow(r, COL.deepWorkMinutes, ["DeepWorkMinutes"]));
--          const impulse = toNum(valueFromRow(r, COL.impulseSpendCount, ["ImpulseSpends", "Impulse"]));
--          const tasksCompleted = toNum(valueFromRow(r, "TasksCompleted", ["Tasks Completed", "CompletedTasks", "Task Count"]));
--          const planningDone = boolNum(valueFromRow(r, "PlanningYN", ["Planning Done", "PlannedYN", "TaskPlanningYN"]));
- 
-           return {
--            raw: r,
--            date: d,
--            dateText: dateVal || "",
--            pillars: { health, family, creation, wealth },
--            totalRaw: total,
--            sleep, steps, deep, impulse, tasksCompleted, planningDone
-+            raw:r,
-+            date:d,
-+            dateText:dateVal || "",
-+            pillars:{health,family,creation,wealth},
-+            totalRaw:toNum(valueFromRow(r, COL.totalScore, ["Score","Total"])),
-+            sleep:toNum(valueFromRow(r, COL.sleepHours, ["SleepHours"])),
-+            steps:toNum(valueFromRow(r, COL.steps)),
-+            deep:toNum(valueFromRow(r, COL.deepWorkMinutes, ["DeepWorkMinutes"])),
-+            impulse:toNum(valueFromRow(r, COL.impulseSpendCount, ["ImpulseSpends","Impulse"])),
-+            tasksCompleted:toNum(valueFromRow(r, "TasksCompleted", ["Tasks Completed","Task Count"])),
-+            planningDone:boolNum(valueFromRow(r, "PlanningYN", ["Planning Done"]))
-           };
-         }).filter(x => x.date);
- 
--        rows.sort((a,b) => a.date - b.date);
--
--        if (rows.length === 0) throw new Error("No dated rows found. Check your Date column mapping.");
--
--        const w = pickSeasonWeights();
-+        rows.sort((a,b)=>a.date-b.date);
-+        if (!rows.length) throw new Error("No dated rows found. Check your Date column mapping.");
- 
--        // Build computed scores
-+        const weights = pickSeasonWeights();
-         const computed = rows.map(x => {
--          const weighted = computeWeightedTotal(x.pillars, w);
--          const score = Number.isFinite(x.totalRaw) ? x.totalRaw : weighted;
--          return { ...x, score, weighted };
-+          const weighted = computeWeightedTotal(x.pillars, weights);
-+          return { ...x, score: Number.isFinite(x.totalRaw) ? x.totalRaw : weighted, weighted };
-         });
- 
-         const today = computed[computed.length - 1];
--        const yesterday = computed.length >= 2 ? computed[computed.length - 2] : null;
--
--        // Headline
-+        const yesterday = computed.length > 1 ? computed[computed.length - 2] : null;
-         const todayScore = today.score;
--        $("todayScore").textContent = fmt(todayScore, 0);
--
--        const delta = (yesterday && Number.isFinite(yesterday.score) && Number.isFinite(todayScore))
--          ? (todayScore - yesterday.score)
--          : null;
--
--        $("deltaLabel").textContent = Number.isFinite(delta) ? ( (delta>=0?"+":"") + fmt(delta,0) + " vs yesterday") : "No prior day to compare";
-+        const delta = (yesterday && Number.isFinite(yesterday.score) && Number.isFinite(todayScore)) ? todayScore - yesterday.score : null;
- 
--        const t = trendArrow(delta);
--        $("trendArrow").textContent = t.txt;
--        $("trendArrow").className = t.cls;
--        $("trendDetail").textContent = Number.isFinite(delta) ? ("Change: " + ((delta>=0?"+":"") + fmt(delta,0))) : "--";
-+        $("todayScore").textContent = fmt(todayScore,0);
-+        $("deltaLabel").textContent = Number.isFinite(delta) ? `${delta>=0?'+':''}${fmt(delta,0)} vs yesterday` : "No prior day to compare";
-+        const ta = trendArrow(delta);
-+        $("trendArrow").textContent = ta.txt;
-+        $("trendArrow").className = ta.cls;
-+        $("trendDetail").textContent = Number.isFinite(delta) ? `Change: ${delta>=0?'+':''}${fmt(delta,0)}` : "--";
- 
--        // Status
-         const st = statusForScore(todayScore);
-         $("statusText").textContent = st.label;
-         setDotClass($("statusPill"), st.dot);
- 
--        // Averages
--        const last7 = computed.slice(Math.max(0, computed.length - 7));
--        const avg7 = last7.map(x => x.score).filter(Number.isFinite);
--        const avg7v = avg7.length ? (avg7.reduce((a,b)=>a+b,0)/avg7.length) : null;
--        $("avg7").textContent = fmt(avg7v, 0);
--        $("avg7Detail").textContent = avg7.length ? (avg7.length + " days") : "No data";
--
--        // Pillar values and contribution bar
--        const p = today.pillars;
--        const h = p.health, f = p.family, c = p.creation, ww = p.wealth;
--
--        $("hVal").textContent = fmt(h,0);
--        $("fVal").textContent = fmt(f,0);
--        $("cVal").textContent = fmt(c,0);
--        $("wVal").textContent = fmt(ww,0);
--
--        // Contribution widths use weights (not raw pillars)
--        const totW = w.health + w.family + w.creation + w.wealth;
--        const wh = (w.health/totW)*100;
--        const wf = (w.family/totW)*100;
--        const wc = (w.creation/totW)*100;
--        const wwe = (w.wealth/totW)*100;
--        $("barH").style.width = wh + "%";
--        $("barF").style.width = wf + "%";
--        $("barC").style.width = wc + "%";
--        $("barW").style.width = wwe + "%";
--
--        // Warnings
--        const warnsToday = buildWarnings({ score: todayScore, sleep: today.sleep, steps: today.steps, deep: today.deep, impulse: today.impulse });
--        $("warnCount").textContent = String(warnsToday.length);
--        $("warnDetail").textContent = warnsToday.length ? warnsToday.join(", ") : "None";
--
--        // Task orientation
--        const tasksDoneToday = Number.isFinite(today.tasksCompleted) ? today.tasksCompleted : 0;
--        $("tasksCompletedCount").textContent = fmt(tasksDoneToday, 0);
-+        const avg7Rows = computed.slice(Math.max(0, computed.length - 7));
-+        const avg7Vals = avg7Rows.map(x => x.score).filter(Number.isFinite);
-+        const avg7 = avg7Vals.length ? avg7Vals.reduce((a,b)=>a+b,0)/avg7Vals.length : null;
-+        $("avg7").textContent = fmt(avg7,0);
-+        $("avg7Detail").textContent = avg7Vals.length ? `${avg7Vals.length} days` : "No data";
-+
-+        const p=today.pillars;
-+        $("hVal").textContent = fmt(p.health,0);
-+        $("fVal").textContent = fmt(p.family,0);
-+        $("cVal").textContent = fmt(p.creation,0);
-+        $("wVal").textContent = fmt(p.wealth,0);
-+
-+        const tw = weights.health + weights.family + weights.creation + weights.wealth;
-+        $("barH").style.width = `${(weights.health/tw)*100}%`;
-+        $("barF").style.width = `${(weights.family/tw)*100}%`;
-+        $("barC").style.width = `${(weights.creation/tw)*100}%`;
-+        $("barW").style.width = `${(weights.wealth/tw)*100}%`;
-+
-+        const warns = buildWarnings({score:todayScore,sleep:today.sleep,steps:today.steps,deep:today.deep,impulse:today.impulse});
-+        $("warnCount").textContent = String(warns.length);
-+        $("warnDetail").textContent = warns.length ? warns.join(", ") : "None";
-+
-+        const tasksDone = Number.isFinite(today.tasksCompleted) ? today.tasksCompleted : 0;
-+        $("tasksCompletedCount").textContent = fmt(tasksDone,0);
-         $("tasksPlanningDetail").textContent = today.planningDone ? "Planning done" : "No planning logged";
- 
--        // Nudge based on last 3 days
--        const last3 = computed.slice(Math.max(0, computed.length - 3)).reverse().map(x => ({
--          score: x.score, sleep: x.sleep, steps: x.steps, deep: x.deep, impulse: x.impulse
--        }));
--        $("nudgeBox").innerHTML = "<strong>Nudge:</strong> " + buildNudge(last3);
--
--        // Subtitle
--        const seasonKey = $("season").value;
--        const seasonName = seasonKey === "default" ? "Default weights" :
--                           seasonKey === "family" ? "Family heavy weights" :
--                           seasonKey === "health" ? "Health heavy weights" :
--                           "Build mode weights";
--        $("subtitle").textContent = "Latest entry: " + (today.dateText || today.date.toDateString()) + "  |  " + seasonName;
--
--        // Inputs table
--        const inputs = [
--          ["Sleep hours", fmt(today.sleep, 1)],
--          ["Steps", fmt(today.steps, 0)],
--          ["Deep work minutes", fmt(today.deep, 0)],
--          ["Impulse spend count", fmt(today.impulse, 0)],
--          ["Tasks completed", fmt(tasksDoneToday, 0)],
-+        const last3 = computed.slice(Math.max(0, computed.length - 3)).reverse().map(x => ({score:x.score,sleep:x.sleep,steps:x.steps,deep:x.deep,impulse:x.impulse}));
-+        $("nudgeBox").innerHTML = `<strong>Nudge:</strong> ${buildNudge(last3)}`;
-+
-+        const seasonName = {default:"Default weights",family:"Family heavy weights",health:"Health heavy weights",build:"Build mode weights"}[$("season").value] || "Default weights";
-+        $("subtitle").textContent = `Latest entry: ${today.dateText || today.date.toDateString()}  |  ${seasonName}`;
-+
-+        $("inputsTable").innerHTML = [
-+          ["Sleep hours", fmt(today.sleep,1)],
-+          ["Steps", fmt(today.steps,0)],
-+          ["Deep work minutes", fmt(today.deep,0)],
-+          ["Impulse spend count", fmt(today.impulse,0)],
-+          ["Tasks completed", fmt(tasksDone,0)],
-           ["Planning done", today.planningDone ? "Yes" : "No"]
--        ];
--        $("inputsTable").innerHTML = inputs.map(([k,v]) =>
--          `<tr><td class="muted">${k}</td><td>${v}</td></tr>`
--        ).join("");
--
--        // Outputs table
--        const outputs = [
--          ["Total score", fmt(todayScore, 0)],
--          ["Health", fmt(h, 0)],
--          ["Family", fmt(f, 0)],
--          ["Creation", fmt(c, 0)],
--          ["Wealth", fmt(ww, 0)]
--        ];
--        $("outputsTable").innerHTML = outputs.map(([k,v]) =>
--          `<tr><td class="muted">${k}</td><td>${v}</td></tr>`
--        ).join("");
--
--        // Recent table (last 10)
-+        ].map(([k,v]) => `<tr><td class="muted">${k}</td><td>${v}</td></tr>`).join("");
-+
-+        $("outputsTable").innerHTML = [
-+          ["Total score", fmt(todayScore,0)],
-+          ["Health", fmt(p.health,0)],
-+          ["Family", fmt(p.family,0)],
-+          ["Creation", fmt(p.creation,0)],
-+          ["Wealth", fmt(p.wealth,0)]
-+        ].map(([k,v]) => `<tr><td class="muted">${k}</td><td>${v}</td></tr>`).join("");
-+
-         const recent = computed.slice(Math.max(0, computed.length - 10)).reverse();
--        $("recentTable").innerHTML = recent.map(x => `
--          <tr>
--            <td>${x.dateText || x.date.toISOString().slice(0,10)}</td>
--            <td>${fmt(x.score,0)}</td>
--            <td>${fmt(x.pillars.health,0)}</td>
--            <td>${fmt(x.pillars.family,0)}</td>
--            <td>${fmt(x.pillars.creation,0)}</td>
--            <td>${fmt(x.pillars.wealth,0)}</td>
--          </tr>
--        `).join("");
--
--        $("footerNote").textContent =
--          "Weights in use: Health " + Math.round(w.health*100) + "%, Family " + Math.round(w.family*100) + "%, Creation " + Math.round(w.creation*100) + "%, Wealth " + Math.round(w.wealth*100) + "%.";
-+        $("recentTable").innerHTML = recent.map(x => `<tr><td>${x.dateText || x.date.toISOString().slice(0,10)}</td><td>${fmt(x.score,0)}</td><td>${fmt(x.pillars.health,0)}</td><td>${fmt(x.pillars.family,0)}</td><td>${fmt(x.pillars.creation,0)}</td><td>${fmt(x.pillars.wealth,0)}</td></tr>`).join("");
- 
--        renderTrendGraph(computed);
-+        $("footerNote").textContent = `Weights in use: Health ${Math.round(weights.health*100)}%, Family ${Math.round(weights.family*100)}%, Creation ${Math.round(weights.creation*100)}%, Wealth ${Math.round(weights.wealth*100)}%.`;
- 
--      } catch (err){
-+        renderTrendGraph(computed);
-+      } catch (err) {
-         $("subtitle").textContent = "Error loading data";
-         const box = $("nudgeBox");
-         box.className = "error";
--        box.innerHTML = "<strong>Error:</strong> " + (err?.message || String(err));
-+        box.innerHTML = `<strong>Error:</strong> ${err?.message || String(err)}`;
-         $("todayScore").textContent = "--";
-         $("statusText").textContent = "Error";
-         setDotClass($("statusPill"), "bad");
-       }
-     }
- 
-     $("season").addEventListener("change", load);
-     $("refreshBtn").addEventListener("click", load);
-+    wireTabs();
-     wireSurvey();
-     load();
-   </script>
- </body>
- </html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Life Dashboard</title>
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0b0f17;
+      --panel:#101827;
+      --panel2:#0f1624;
+      --text:#e6edf6;
+      --muted:#9fb0c6;
+      --border:#22314a;
+      --good:#3ddc97;
+      --warn:#f2c94c;
+      --bad:#ff6b6b;
+      --link:#8ab4ff;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1000px 700px at 20% 0%, rgba(138,180,255,0.12), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(61,220,151,0.08), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      padding:24px;
+    }
+    .wrap{max-width:1100px;margin:0 auto}
+    header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+    h1{margin:0;font-size:22px}
+    .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.35}
+    .right{text-align:right;color:var(--muted);font-size:12px;line-height:1.4;max-width:420px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent 120%), var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .tabBar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .tabBtn{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .tabBtn.active{background:rgba(138,180,255,0.16);border-color:#5f7ea8}
+    .tabPanel{display:none}
+    .tabPanel.active{display:block}
+
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .bigScore{display:flex;align-items:baseline;gap:10px}
+    .scoreNum{font-size:44px;font-weight:750}
+    .scoreMeta{color:var(--muted);font-size:13px}
+    .pill{padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.02);display:inline-flex;gap:8px;align-items:center}
+    .dot{width:8px;height:8px;border-radius:50%}
+    .good{background:var(--good)}
+    .warn{background:var(--warn)}
+    .bad{background:var(--bad)}
+
+    .kpiGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+    .kpi{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .kpi .label{color:var(--muted);font-size:12px}
+    .kpi .value{margin-top:6px;font-size:18px;font-weight:650}
+    .kpi .tiny{margin-top:4px;color:var(--muted);font-size:12px}
+
+    .sectionTitle{margin:0 0 10px 0;font-size:14px;color:var(--muted);text-transform:uppercase}
+    .barWrap{margin-top:10px}
+    .bar{height:10px;background:#0a1220;border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .barLegend{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+    .legendItem{display:flex;gap:8px;align-items:center}
+    .mini{width:10px;height:10px;border-radius:3px;background:#2b3c5b}
+    .mini.h{background:rgba(61,220,151,0.85)}
+    .mini.f{background:rgba(138,180,255,0.85)}
+    .mini.c{background:rgba(242,201,76,0.95)}
+    .mini.w{background:rgba(255,107,107,0.9)}
+
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+    th{color:var(--muted);font-weight:600}
+    .muted{color:var(--muted)}
+    .trendUp{color:var(--good);font-weight:650}
+    .trendDown{color:var(--bad);font-weight:650}
+    .trendFlat{color:var(--muted);font-weight:650}
+
+    .nudge{border-left:4px solid var(--warn);background:rgba(242,201,76,0.06);padding:10px 12px;border-radius:10px;border:1px solid rgba(242,201,76,.25);line-height:1.35}
+    .error{border-left:4px solid var(--bad);background:rgba(255,107,107,0.06);padding:10px 12px;border-radius:10px;border:1px solid rgba(255,107,107,.25);line-height:1.35}
+    .footer{margin-top:16px;color:var(--muted);font-size:12px}
+
+    .select{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12px}
+    .btn{background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 10px;font-size:12px;cursor:pointer}
+
+    .surveyCard{margin-bottom:14px}
+    .surveyTop{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+    .surveyTitle{margin:0;font-size:16px}
+    .surveyMeta{font-size:12px;color:var(--muted)}
+    .surveyQ{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2)}
+    .surveyLabel{font-size:14px;margin-bottom:8px}
+    .surveyControls{display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
+    .surveyInput{width:100%;background:#0b1322;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:14px}
+    .surveyHint{font-size:12px;color:var(--muted);margin-top:6px}
+
+    .graphWrap{margin-top:14px}
+    .graphMeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:10px}
+    .graphLegend{display:flex;gap:12px;flex-wrap:wrap}
+    .graphSvg{width:100%;height:auto;border:1px solid var(--border);border-radius:12px;background:#0b1322}
+    .graphAxis{font-size:11px;fill:var(--muted)}
+
+    @media (max-width:920px){
+      .grid,.twoCol,.kpiGrid{grid-template-columns:1fr}
+      .right{text-align:left}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Dashboard</h1>
+        <div class="sub" id="subtitle">Loading data…</div>
+      </div>
+      <div class="right">
+        <div class="controls">
+          <label class="muted" for="season">Season</label>
+          <select id="season" class="select">
+            <option value="default">Default</option>
+            <option value="family">Family heavy</option>
+            <option value="health">Health heavy</option>
+            <option value="build">Build mode</option>
+          </select>
+          <button class="btn" id="refreshBtn" type="button">Refresh</button>
+        </div>
+        <div style="margin-top:8px" class="muted">Reads from your Google Sheet CSV and writes new survey answers using your Apps Script endpoint.</div>
+      </div>
+    </header>
+
+    <div class="tabBar" role="tablist" aria-label="Dashboard sections">
+      <button class="tabBtn active" id="dashboardTabBtn" data-tab="dashboard" type="button" role="tab" aria-selected="true">Dashboard</button>
+      <button class="tabBtn" id="dataTabBtn" data-tab="data" type="button" role="tab" aria-selected="false">Daily check-in & data</button>
+    </div>
+
+    <section id="dashboardTab" class="tabPanel active" role="tabpanel" aria-labelledby="dashboardTabBtn">
+      <div class="card">
+        <div class="row">
+          <div class="bigScore">
+            <div class="scoreNum" id="todayScore">--</div>
+            <div class="scoreMeta">
+              <div>Today score</div>
+              <div class="muted" id="deltaLabel">--</div>
+            </div>
+          </div>
+          <div class="pill" id="statusPill">
+            <span class="dot warn"></span>
+            <span id="statusText">Loading</span>
+          </div>
+        </div>
+
+        <div class="barWrap">
+          <div class="bar"><div id="barInner" style="display:flex;width:100%"><div id="barH" class="mini h" style="width:25%"></div><div id="barF" class="mini f" style="width:25%"></div><div id="barC" class="mini c" style="width:25%"></div><div id="barW" class="mini w" style="width:25%"></div></div></div>
+          <div class="barLegend">
+            <div class="legendItem"><span class="mini h"></span>Health <span class="muted" id="hVal">--</span></div>
+            <div class="legendItem"><span class="mini f"></span>Family <span class="muted" id="fVal">--</span></div>
+            <div class="legendItem"><span class="mini c"></span>Creation <span class="muted" id="cVal">--</span></div>
+            <div class="legendItem"><span class="mini w"></span>Wealth <span class="muted" id="wVal">--</span></div>
+          </div>
+        </div>
+
+        <div class="kpiGrid">
+          <div class="kpi"><div class="label">Trend vs yesterday</div><div class="value" id="trendArrow">--</div><div class="tiny" id="trendDetail">--</div></div>
+          <div class="kpi"><div class="label">Last 7 days average</div><div class="value" id="avg7">--</div><div class="tiny" id="avg7Detail">--</div></div>
+          <div class="kpi"><div class="label">Warnings</div><div class="value" id="warnCount">--</div><div class="tiny" id="warnDetail">--</div></div>
+          <div class="kpi"><div class="label">Tasks completed</div><div class="value" id="tasksCompletedCount">--</div><div class="tiny" id="tasksPlanningDetail">--</div></div>
+        </div>
+
+        <div style="margin-top:14px" class="nudge" id="nudgeBox"><strong>Nudge:</strong> Loading…</div>
+      </div>
+
+      <div class="card graphWrap">
+        <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
+        <div class="graphMeta">
+          <div id="graphSummary">Loading graph…</div>
+          <div class="graphLegend">
+            <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
+            <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>5-day moving average line</div>
+          </div>
+        </div>
+        <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
+      </div>
+    </section>
+
+    <section id="dataTab" class="tabPanel" role="tabpanel" aria-labelledby="dataTabBtn">
+      <div class="card surveyCard">
+        <div class="surveyTop">
+          <div>
+            <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
+            <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
+          </div>
+          <div class="controls">
+            <input id="writeUrlInput" class="select" type="url" placeholder="Apps Script Web App URL (.../exec)" style="min-width:320px" />
+            <button class="btn" id="saveWriteUrlBtn" type="button">Save endpoint</button>
+            <button class="btn" id="surveyResetBtn" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="surveyQ">
+          <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
+          <input id="surveyInput" class="surveyInput" type="number" />
+          <div class="surveyHint" id="surveyHint"></div>
+          <div class="surveyControls">
+            <button class="btn" id="surveyPrevBtn" type="button">Back</button>
+            <button class="btn" id="surveyNextBtn" type="button">Next</button>
+            <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="twoCol">
+        <div class="card">
+          <h2 class="sectionTitle">Recent days</h2>
+          <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
+          <table>
+            <thead><tr><th>Date</th><th>Score</th><th>Health</th><th>Family</th><th>Creation</th><th>Wealth</th></tr></thead>
+            <tbody id="recentTable"></tbody>
+          </table>
+          <div class="footer" id="footerNote">--</div>
+        </div>
+
+        <div class="card">
+          <h2 class="sectionTitle">Score sheet</h2>
+          <div class="kpi" style="margin-bottom:12px">
+            <div class="label">Inputs</div>
+            <div class="tiny muted">Sleep, steps, deep work, spending triggers</div>
+            <table style="margin-top:6px"><tbody id="inputsTable"></tbody></table>
+          </div>
+          <div class="kpi">
+            <div class="label">Outputs</div>
+            <div class="tiny muted">Pillars and total score</div>
+            <table style="margin-top:6px"><tbody id="outputsTable"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/edit?usp=sharing";
+    const SHEET_WRITE_URL = "";
+    const SHEET_WRITE_URL_STORAGE_KEY = "betterme.sheetWriteUrl";
+
+    const COL = {
+      date: "Date",
+      totalScore: "Total Score",
+      healthScore: "Health",
+      familyScore: "Family",
+      creationScore: "Creation",
+      wealthScore: "Wealth",
+      sleepHours: "Sleep Hours",
+      steps: "Steps",
+      deepWorkMinutes: "Deep Work Minutes",
+      impulseSpendCount: "Impulse Spend Count"
+    };
+
+    const WEIGHTS = {
+      default:{health:.35,family:.35,creation:.2,wealth:.1},
+      family:{health:.3,family:.45,creation:.15,wealth:.1},
+      health:{health:.45,family:.3,creation:.15,wealth:.1},
+      build:{health:.3,family:.3,creation:.3,wealth:.1}
+    };
+
+    const THRESH = {lowScore:75,sleepLow:7,stepsLow:6000,deepWorkLowMin:60,impulseSpendHigh:1};
+    const $ = (id) => document.getElementById(id);
+
+    function toGoogleSheetCsvUrl(url){
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/output=csv/.test(raw) || /tqx=out:csv/.test(raw)) return raw;
+      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) return raw;
+      let gid = "0";
+      try {
+        const u = new URL(raw);
+        gid = u.searchParams.get("gid") || gid;
+        if (u.hash) gid = (u.hash.match(/gid=(\d+)/) || [])[1] || gid;
+      } catch (_) {
+        gid = (raw.match(/[?&#]gid=(\d+)/) || [])[1] || gid;
+      }
+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+    }
+
+    function parseCSV(text){
+      const rows=[]; let row=[]; let cur=""; let inQuotes=false;
+      for (let i=0;i<text.length;i++){
+        const c=text[i], next=text[i+1];
+        if (c==='"' && inQuotes && next==='"'){cur+='"'; i++; continue;}
+        if (c==='"'){inQuotes=!inQuotes; continue;}
+        if (c===',' && !inQuotes){row.push(cur); cur=""; continue;}
+        if ((c==='\n' || c==='\r') && !inQuotes){
+          if (cur.length || row.length){row.push(cur); rows.push(row); row=[]; cur="";}
+          continue;
+        }
+        cur += c;
+      }
+      if (cur.length || row.length){row.push(cur); rows.push(row);}
+      if (!rows.length) return [];
+      const headers = rows[0].map(h=>h.trim());
+      return rows.slice(1).map(r => {
+        const obj={}; headers.forEach((h,i)=>obj[h]=(r[i] ?? "").trim());
+        return Object.values(obj).some(v => v !== "") ? obj : null;
+      }).filter(Boolean);
+    }
+
+    const cleanHeader = (text) => String(text || "").replace(/^﻿/,"").trim();
+    function findColumnName(row, preferred, fallbacks=[]){
+      const keys=Object.keys(row || {});
+      const wanted=[preferred,...fallbacks].map(cleanHeader).filter(Boolean).map(v=>v.toLowerCase());
+      return keys.find(k => wanted.includes(cleanHeader(k).toLowerCase())) || null;
+    }
+    function valueFromRow(row, preferred, fallbacks=[]){
+      const k=findColumnName(row, preferred, fallbacks);
+      return k ? row[k] : undefined;
+    }
+    function toNum(v){
+      if (v == null) return null;
+      const s = String(v).replace(/[^0-9.\-]/g, "").trim();
+      if (!s) return null;
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function parseDate(v){
+      const raw = String(v || "").trim();
+      if (!raw) return null;
+      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        const d = new Date(raw.slice(0,10) + "T00:00:00");
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+      const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      if (mdy){
+        const yyyy = mdy[3].length === 2 ? `20${mdy[3]}` : mdy[3];
+        const mm = mdy[1].padStart(2,"0"), dd=mdy[2].padStart(2,"0");
+        const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+      const d = new Date(raw);
+      return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function movingAverage(values, n){
+      return values.map((_, i) => {
+        const win = values.slice(Math.max(0, i-n+1), i+1).filter(Number.isFinite);
+        if (!win.length) return null;
+        return win.reduce((a,b)=>a+b,0)/win.length;
+      });
+    }
+    function buildLinePath(points){return points.map((p,i)=>`${i?"L":"M"}${p.x},${p.y}`).join(" ");}
+
+    function renderTrendGraph(rows){
+      const svg = $("trendGraph");
+      const series = rows.slice(Math.max(0, rows.length-30));
+      const scores = series.map(r=>r.score);
+      const avg5 = movingAverage(scores,5);
+      const values = [...scores,...avg5].filter(Number.isFinite);
+      if (!series.length || !values.length){svg.innerHTML=""; $("graphSummary").textContent="No chart data available yet."; return;}
+
+      const width=960, height=320;
+      const pad={top:18,right:22,bottom:34,left:42};
+      const plotW=width-pad.left-pad.right, plotH=height-pad.top-pad.bottom;
+      const minY=Math.max(0, Math.floor(Math.min(...values)-5));
+      const maxY=Math.min(100, Math.ceil(Math.max(...values)+5));
+      const spanY=Math.max(1,maxY-minY);
+      const xAt=(i)=>pad.left + (plotW*i)/Math.max(1,series.length-1);
+      const yAt=(v)=>pad.top + plotH - ((v-minY)/spanY)*plotH;
+
+      const daily = scores.map((v,i)=>Number.isFinite(v)?({x:xAt(i),y:yAt(v),i,v}):null).filter(Boolean);
+      const avg = avg5.map((v,i)=>Number.isFinite(v)?({x:xAt(i),y:yAt(v)}):null).filter(Boolean);
+
+      const ticks = Array.from({length:6}, (_,idx) => {
+        const t=idx/5, y=pad.top+plotH*t, val=Math.round(maxY-(spanY*t));
+        return `<line x1="${pad.left}" y1="${y}" x2="${width-pad.right}" y2="${y}" stroke="#22314a" stroke-width="1" opacity="0.7" /><text x="${pad.left-8}" y="${y+4}" text-anchor="end" class="graphAxis">${val}</text>`;
+      }).join("");
+
+      const xFirst = series[0].dateText || series[0].date.toISOString().slice(0,10);
+      const xLast = series[series.length-1].dateText || series[series.length-1].date.toISOString().slice(0,10);
+
+      svg.innerHTML = `
+        <rect x="0" y="0" width="${width}" height="${height}" fill="transparent"></rect>
+        ${ticks}
+        <line x1="${pad.left}" y1="${height-pad.bottom}" x2="${width-pad.right}" y2="${height-pad.bottom}" stroke="#405473" stroke-width="1.2" />
+        <path d="${buildLinePath(daily)}" fill="none" stroke="#8ab4ff" stroke-width="2" />
+        <path d="${buildLinePath(avg)}" fill="none" stroke="#3ddc97" stroke-width="5" opacity="0.85" />
+        ${daily.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="3.2" fill="#8ab4ff"><title>${series[p.i].date.toISOString().slice(0,10)}: ${fmt(p.v,0)}</title></circle>`).join("")}
+        <text x="${pad.left}" y="${height-10}" class="graphAxis">${xFirst}</text>
+        <text x="${width-pad.right}" y="${height-10}" text-anchor="end" class="graphAxis">${xLast}</text>
+      `;
+
+      $("graphSummary").textContent = `Showing ${series.length} days. Latest score: ${fmt(scores[scores.length-1],0)} | Latest 5-day moving average: ${fmt(avg5[avg5.length-1],1)}.`;
+    }
+
+    function fmt(n, digits=0){return Number.isFinite(n) ? n.toFixed(digits) : "--";}
+    function trendArrow(delta){
+      if (!Number.isFinite(delta)) return {txt:"--",cls:"trendFlat"};
+      if (delta > 0.5) return {txt:"▲ Up",cls:"trendUp"};
+      if (delta < -0.5) return {txt:"▼ Down",cls:"trendDown"};
+      return {txt:"▬ Flat",cls:"trendFlat"};
+    }
+    function pickSeasonWeights(){return WEIGHTS[$("season").value] || WEIGHTS.default;}
+
+    function computeWeightedTotal(p, w){
+      if (![p.health,p.family,p.creation,p.wealth].every(Number.isFinite)) return null;
+      const scale = Math.max(p.health,p.family,p.creation,p.wealth) <= 25 ? 4 : 1;
+      return (p.health*scale)*w.health + (p.family*scale)*w.family + (p.creation*scale)*w.creation + (p.wealth*scale)*w.wealth;
+    }
+
+    function statusForScore(score){
+      if (!Number.isFinite(score)) return {label:"No data",dot:"warn"};
+      if (score >= 85) return {label:"On track",dot:"good"};
+      if (score >= THRESH.lowScore) return {label:"Watch it",dot:"warn"};
+      return {label:"Needs attention",dot:"bad"};
+    }
+
+    function buildNudge(last3){
+      const recent = last3 || [];
+      const sleepMiss = recent.filter(x => Number.isFinite(x.sleep) && x.sleep < THRESH.sleepLow).length;
+      const stepsMiss = recent.filter(x => Number.isFinite(x.steps) && x.steps < THRESH.stepsLow).length;
+      const deepMiss = recent.filter(x => Number.isFinite(x.deep) && x.deep < THRESH.deepWorkLowMin).length;
+      const spendHigh = recent.filter(x => Number.isFinite(x.impulse) && x.impulse > THRESH.impulseSpendHigh).length;
+      const scoreLow = recent.filter(x => Number.isFinite(x.score) && x.score < THRESH.lowScore).length;
+      if (scoreLow >= 2) return "Your score is dipping. Protect sleep + deep work first today.";
+      if (sleepMiss >= 2) return "Sleep has been low recently. Consider an earlier cutoff tonight.";
+      if (deepMiss >= 2) return "Deep work has been low. Block one protected 60-minute focus sprint.";
+      if (stepsMiss >= 2) return "Movement is under target. Add a walk break before dinner.";
+      if (spendHigh >= 2) return "Impulse spending is elevated. Add a 24-hour pause for non-essential buys.";
+      return "Keep stacking consistency. One strong day can reset the whole week.";
+    }
+
+    function buildWarnings(row){
+      const warns=[];
+      if (Number.isFinite(row.score) && row.score < THRESH.lowScore) warns.push("Low score");
+      if (Number.isFinite(row.sleep) && row.sleep < THRESH.sleepLow) warns.push("Low sleep");
+      if (Number.isFinite(row.steps) && row.steps < THRESH.stepsLow) warns.push("Low steps");
+      if (Number.isFinite(row.deep) && row.deep < THRESH.deepWorkLowMin) warns.push("Low deep work");
+      if (Number.isFinite(row.impulse) && row.impulse > THRESH.impulseSpendHigh) warns.push("Impulse spend");
+      return warns;
+    }
+
+    function boolNum(v){
+      const s = String(v ?? "").trim().toLowerCase();
+      if (["1","y","yes","true"].includes(s)) return 1;
+      if (["0","n","no","false"].includes(s)) return 0;
+      const n = toNum(v);
+      return Number.isFinite(n) ? (n > 0 ? 1 : 0) : 0;
+    }
+
+    function pointsByBands(value, bands){
+      if (!Number.isFinite(value)) return 0;
+      for (const band of bands){ if (value >= band.min) return band.points; }
+      return 0;
+    }
+
+    function derivePillarsFromHabits(row){
+      const sleep = toNum(valueFromRow(row, "SleepHours", ["Sleep Hours"]));
+      const steps = toNum(valueFromRow(row, "Steps"));
+      const deep = toNum(valueFromRow(row, "DeepWorkMinutes", ["Deep Work Minutes"]));
+      const kids = toNum(valueFromRow(row, "KidsMinutes", ["Family Minutes"]));
+      const strength = boolNum(valueFromRow(row, "StrengthYN", ["Strength YN"]));
+      const protein = boolNum(valueFromRow(row, "ProteinYN", ["Protein YN"]));
+      const calories = boolNum(valueFromRow(row, "CaloriesYN", ["Calories YN"]));
+      const proactive = boolNum(valueFromRow(row, "ProactiveYN", ["Proactive YN"]));
+      const noEsc = boolNum(valueFromRow(row, "NoEscalationYN", ["No Escalation YN"]));
+      const noImp = boolNum(valueFromRow(row, "NoImpulseYN", ["No Impulse YN"]));
+      const tasks = toNum(valueFromRow(row, "TasksCompleted", ["Tasks Completed"])) || 0;
+      const planning = boolNum(valueFromRow(row, "PlanningYN", ["Planning Done"]));
+
+      const health = pointsByBands(sleep,[{min:8,points:10},{min:7.5,points:8},{min:7,points:6},{min:6.5,points:4},{min:0,points:2}])
+        + pointsByBands(steps,[{min:12000,points:8},{min:9000,points:6},{min:7000,points:4},{min:5000,points:2},{min:0,points:0}])
+        + (strength?4:0) + (protein?2:0) + (calories?1:0);
+      const family = pointsByBands(kids,[{min:90,points:15},{min:60,points:12},{min:45,points:8},{min:20,points:4},{min:0,points:0}]) + (proactive?5:0) + (noEsc?5:0);
+      const creation = pointsByBands(deep,[{min:180,points:20},{min:120,points:15},{min:90,points:10},{min:60,points:6},{min:0,points:0}]) + Math.min(5, Math.max(0, tasks));
+      const wealth = (noImp?15:0) + (planning?10:0);
+      return {health,family,creation,wealth};
+    }
+
+    function setDotClass(el, dot){
+      if (!el) return;
+      const d = el.querySelector(".dot");
+      if (!d) return;
+      d.className = `dot ${dot}`;
+    }
+
+    const SURVEY_QUESTIONS = [
+      { key:"SleepHours", label:"How many hours did you sleep last night?", min:0, max:24, step:.1, hint:"Example: 7.5" },
+      { key:"Steps", label:"How many steps did you get today?", min:0, max:100000, step:1 },
+      { key:"KidsMinutes", label:"How many quality minutes with kids/family?", min:0, max:1440, step:1 },
+      { key:"DeepWorkMinutes", label:"How many deep-work minutes?", min:0, max:1440, step:1 },
+      { key:"StrengthYN", label:"Did you complete strength training? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"ProteinYN", label:"Did you hit your protein target? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"CaloriesYN", label:"Did you stay within calorie target? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"ProactiveYN", label:"Did you proactively connect with family? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"NoEscalationYN", label:"Did you avoid escalation/friction? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"NoImpulseYN", label:"No impulse spending today? (1=yes, 0=no)", min:0, max:1, step:1 },
+      { key:"TasksCompleted", label:"How many priority tasks did you complete?", min:0, max:50, step:1 },
+      { key:"PlanningYN", label:"Did you complete next-day planning? (1=yes, 0=no)", min:0, max:1, step:1 }
+    ];
+
+    let surveyIndex = 0;
+    const surveyAnswers = {};
+
+    function setSurveyStatus(text){ $("surveyStatus").textContent = text; }
+    function getSheetWriteUrl(){ return String(localStorage.getItem(SHEET_WRITE_URL_STORAGE_KEY) || SHEET_WRITE_URL || "").trim(); }
+    function setSheetWriteUrl(url){
+      const v = String(url || "").trim();
+      if (!v) localStorage.removeItem(SHEET_WRITE_URL_STORAGE_KEY);
+      else localStorage.setItem(SHEET_WRITE_URL_STORAGE_KEY, v);
+    }
+
+    function updateSurveyView(){
+      const q = SURVEY_QUESTIONS[surveyIndex];
+      const input = $("surveyInput");
+      $("surveyQuestion").textContent = q.label;
+      $("surveyHint").textContent = q.hint || `Question ${surveyIndex + 1} of ${SURVEY_QUESTIONS.length}`;
+      input.min = q.min; input.max = q.max; input.step = q.step || 1;
+      input.value = surveyAnswers[q.key] ?? "";
+      $("surveyPrevBtn").disabled = surveyIndex === 0;
+      $("surveyNextBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "none" : "inline-block";
+      $("surveySubmitBtn").style.display = surveyIndex === SURVEY_QUESTIONS.length - 1 ? "inline-block" : "none";
+      input.focus();
+    }
+
+    function storeCurrentAnswer(){
+      const q = SURVEY_QUESTIONS[surveyIndex];
+      const raw = String($("surveyInput").value || "").trim();
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < q.min || n > q.max) return false;
+      surveyAnswers[q.key] = n;
+      return true;
+    }
+
+    function buildSurveyPayload(){
+      return {
+        Timestamp: new Date().toISOString(),
+        SleepHours: surveyAnswers.SleepHours ?? 0,
+        Steps: surveyAnswers.Steps ?? 0,
+        KidsMinutes: surveyAnswers.KidsMinutes ?? 0,
+        DeepWorkMinutes: surveyAnswers.DeepWorkMinutes ?? 0,
+        StrengthYN: surveyAnswers.StrengthYN ?? 0,
+        ProteinYN: surveyAnswers.ProteinYN ?? 0,
+        CaloriesYN: surveyAnswers.CaloriesYN ?? 0,
+        ProactiveYN: surveyAnswers.ProactiveYN ?? 0,
+        NoEscalationYN: surveyAnswers.NoEscalationYN ?? 0,
+        NoImpulseYN: surveyAnswers.NoImpulseYN ?? 0,
+        TasksCompleted: surveyAnswers.TasksCompleted ?? 0,
+        PlanningYN: surveyAnswers.PlanningYN ?? 0
+      };
+    }
+
+    async function submitSurvey(){
+      if (!storeCurrentAnswer()) {
+        setSurveyStatus("Enter a valid answer before submitting.");
+        return;
+      }
+      const missing = SURVEY_QUESTIONS.filter(q => !Number.isFinite(surveyAnswers[q.key]));
+      if (missing.length){ setSurveyStatus(`Please complete all questions. Missing: ${missing[0].label}`); return; }
+
+      const writeUrl = getSheetWriteUrl();
+      if (!writeUrl){ setSurveyStatus("Set your Apps Script endpoint URL, then click Save endpoint."); return; }
+
+      setSurveyStatus("Submitting to Google Sheet...");
+      const res = await fetch(writeUrl, { method:"POST", body: JSON.stringify(buildSurveyPayload()) });
+      const bodyText = await res.text();
+      if (!res.ok) throw new Error(`Submit failed (HTTP ${res.status}). ${(bodyText || "").slice(0,180)}`.trim());
+      if (/^<!doctype html>/i.test(bodyText.trim())) { setSurveyStatus("Endpoint returned HTML. Use the deployed Apps Script /exec URL."); return; }
+
+      setSurveyStatus("Saved. Refreshing dashboard...");
+      await load();
+      setSurveyStatus("Saved to sheet successfully.");
+    }
+
+    function wireSurvey(){
+      $("surveyPrevBtn").addEventListener("click", () => {
+        storeCurrentAnswer();
+        surveyIndex = Math.max(0, surveyIndex - 1);
+        updateSurveyView();
+      });
+
+      $("surveyNextBtn").addEventListener("click", () => {
+        if (!storeCurrentAnswer()) { setSurveyStatus("Enter a valid answer before moving on."); return; }
+        surveyIndex = Math.min(SURVEY_QUESTIONS.length - 1, surveyIndex + 1);
+        setSurveyStatus(`Progress: ${surveyIndex + 1}/${SURVEY_QUESTIONS.length}`);
+        updateSurveyView();
+      });
+
+      $("surveySubmitBtn").addEventListener("click", async () => {
+        try { await submitSurvey(); }
+        catch (err) { setSurveyStatus("Error submitting survey: " + (err?.message || String(err))); }
+      });
+
+      $("saveWriteUrlBtn").addEventListener("click", () => {
+        const url = String($("writeUrlInput").value || "").trim();
+        if (!url) { setSheetWriteUrl(""); setSurveyStatus("Write endpoint cleared."); return; }
+        if (!/^https:\/\//i.test(url)) { setSurveyStatus("Endpoint must be a valid https URL."); return; }
+        if (!/\/exec(?:$|[?#])/.test(url)) { setSurveyStatus("Use the deployed Apps Script Web App URL ending in /exec."); return; }
+        setSheetWriteUrl(url);
+        setSurveyStatus("Write endpoint saved.");
+      });
+
+      $("surveyResetBtn").addEventListener("click", () => {
+        surveyIndex = 0;
+        Object.keys(surveyAnswers).forEach(k => delete surveyAnswers[k]);
+        setSurveyStatus("Survey reset.");
+        updateSurveyView();
+      });
+
+      $("writeUrlInput").value = getSheetWriteUrl();
+      if (getSheetWriteUrl()) setSurveyStatus(`Write endpoint ready. Complete all ${SURVEY_QUESTIONS.length} questions and submit.`);
+
+      $("surveyInput").addEventListener("keydown", async (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        if (surveyIndex < SURVEY_QUESTIONS.length - 1) { $("surveyNextBtn").click(); return; }
+        try { await submitSurvey(); }
+        catch (err) { setSurveyStatus("Error submitting survey: " + (err?.message || String(err))); }
+      });
+
+      updateSurveyView();
+    }
+
+    function wireTabs(){
+      const buttons = Array.from(document.querySelectorAll(".tabBtn"));
+      const panels = { dashboard: $("dashboardTab"), data: $("dataTab") };
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const tab = btn.dataset.tab;
+          buttons.forEach(b => {
+            const active = b === btn;
+            b.classList.toggle("active", active);
+            b.setAttribute("aria-selected", active ? "true" : "false");
+          });
+          Object.entries(panels).forEach(([key, panel]) => panel.classList.toggle("active", key === tab));
+        });
+      });
+    }
+
+    async function load(){
+      try {
+        if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")) throw new Error("CSV_URL is not set.");
+        const res = await fetch(toGoogleSheetCsvUrl(CSV_URL), { cache:"no-store" });
+        if (!res.ok) throw new Error("Failed to load CSV. HTTP " + res.status);
+        const raw = parseCSV(await res.text());
+
+        const rows = raw.map(r => {
+          const dateVal = valueFromRow(r, COL.date, ["Timestamp","Day"]);
+          const d = parseDate(dateVal);
+
+          let health = toNum(valueFromRow(r, COL.healthScore, ["HealthScore"]));
+          let family = toNum(valueFromRow(r, COL.familyScore, ["FamilyScore"]));
+          let creation = toNum(valueFromRow(r, COL.creationScore, ["CreationScore"]));
+          let wealth = toNum(valueFromRow(r, COL.wealthScore, ["WealthScore"]));
+          if (![health,family,creation,wealth].every(Number.isFinite)) {
+            const derived = derivePillarsFromHabits(r);
+            health = Number.isFinite(health) ? health : derived.health;
+            family = Number.isFinite(family) ? family : derived.family;
+            creation = Number.isFinite(creation) ? creation : derived.creation;
+            wealth = Number.isFinite(wealth) ? wealth : derived.wealth;
+          }
+
+          return {
+            raw:r,
+            date:d,
+            dateText:dateVal || "",
+            pillars:{health,family,creation,wealth},
+            totalRaw:toNum(valueFromRow(r, COL.totalScore, ["Score","Total"])),
+            sleep:toNum(valueFromRow(r, COL.sleepHours, ["SleepHours"])),
+            steps:toNum(valueFromRow(r, COL.steps)),
+            deep:toNum(valueFromRow(r, COL.deepWorkMinutes, ["DeepWorkMinutes"])),
+            impulse:toNum(valueFromRow(r, COL.impulseSpendCount, ["ImpulseSpends","Impulse"])),
+            tasksCompleted:toNum(valueFromRow(r, "TasksCompleted", ["Tasks Completed","Task Count"])),
+            planningDone:boolNum(valueFromRow(r, "PlanningYN", ["Planning Done"]))
+          };
+        }).filter(x => x.date);
+
+        rows.sort((a,b)=>a.date-b.date);
+        if (!rows.length) throw new Error("No dated rows found. Check your Date column mapping.");
+
+        const weights = pickSeasonWeights();
+        const computed = rows.map(x => {
+          const weighted = computeWeightedTotal(x.pillars, weights);
+          return { ...x, score: Number.isFinite(x.totalRaw) ? x.totalRaw : weighted, weighted };
+        });
+
+        const today = computed[computed.length - 1];
+        const yesterday = computed.length > 1 ? computed[computed.length - 2] : null;
+        const todayScore = today.score;
+        const delta = (yesterday && Number.isFinite(yesterday.score) && Number.isFinite(todayScore)) ? todayScore - yesterday.score : null;
+
+        $("todayScore").textContent = fmt(todayScore,0);
+        $("deltaLabel").textContent = Number.isFinite(delta) ? `${delta>=0?'+':''}${fmt(delta,0)} vs yesterday` : "No prior day to compare";
+        const ta = trendArrow(delta);
+        $("trendArrow").textContent = ta.txt;
+        $("trendArrow").className = ta.cls;
+        $("trendDetail").textContent = Number.isFinite(delta) ? `Change: ${delta>=0?'+':''}${fmt(delta,0)}` : "--";
+
+        const st = statusForScore(todayScore);
+        $("statusText").textContent = st.label;
+        setDotClass($("statusPill"), st.dot);
+
+        const avg7Rows = computed.slice(Math.max(0, computed.length - 7));
+        const avg7Vals = avg7Rows.map(x => x.score).filter(Number.isFinite);
+        const avg7 = avg7Vals.length ? avg7Vals.reduce((a,b)=>a+b,0)/avg7Vals.length : null;
+        $("avg7").textContent = fmt(avg7,0);
+        $("avg7Detail").textContent = avg7Vals.length ? `${avg7Vals.length} days` : "No data";
+
+        const p=today.pillars;
+        $("hVal").textContent = fmt(p.health,0);
+        $("fVal").textContent = fmt(p.family,0);
+        $("cVal").textContent = fmt(p.creation,0);
+        $("wVal").textContent = fmt(p.wealth,0);
+
+        const tw = weights.health + weights.family + weights.creation + weights.wealth;
+        $("barH").style.width = `${(weights.health/tw)*100}%`;
+        $("barF").style.width = `${(weights.family/tw)*100}%`;
+        $("barC").style.width = `${(weights.creation/tw)*100}%`;
+        $("barW").style.width = `${(weights.wealth/tw)*100}%`;
+
+        const warns = buildWarnings({score:todayScore,sleep:today.sleep,steps:today.steps,deep:today.deep,impulse:today.impulse});
+        $("warnCount").textContent = String(warns.length);
+        $("warnDetail").textContent = warns.length ? warns.join(", ") : "None";
+
+        const tasksDone = Number.isFinite(today.tasksCompleted) ? today.tasksCompleted : 0;
+        $("tasksCompletedCount").textContent = fmt(tasksDone,0);
+        $("tasksPlanningDetail").textContent = today.planningDone ? "Planning done" : "No planning logged";
+
+        const last3 = computed.slice(Math.max(0, computed.length - 3)).reverse().map(x => ({score:x.score,sleep:x.sleep,steps:x.steps,deep:x.deep,impulse:x.impulse}));
+        $("nudgeBox").innerHTML = `<strong>Nudge:</strong> ${buildNudge(last3)}`;
+
+        const seasonName = {default:"Default weights",family:"Family heavy weights",health:"Health heavy weights",build:"Build mode weights"}[$("season").value] || "Default weights";
+        $("subtitle").textContent = `Latest entry: ${today.dateText || today.date.toDateString()}  |  ${seasonName}`;
+
+        $("inputsTable").innerHTML = [
+          ["Sleep hours", fmt(today.sleep,1)],
+          ["Steps", fmt(today.steps,0)],
+          ["Deep work minutes", fmt(today.deep,0)],
+          ["Impulse spend count", fmt(today.impulse,0)],
+          ["Tasks completed", fmt(tasksDone,0)],
+          ["Planning done", today.planningDone ? "Yes" : "No"]
+        ].map(([k,v]) => `<tr><td class="muted">${k}</td><td>${v}</td></tr>`).join("");
+
+        $("outputsTable").innerHTML = [
+          ["Total score", fmt(todayScore,0)],
+          ["Health", fmt(p.health,0)],
+          ["Family", fmt(p.family,0)],
+          ["Creation", fmt(p.creation,0)],
+          ["Wealth", fmt(p.wealth,0)]
+        ].map(([k,v]) => `<tr><td class="muted">${k}</td><td>${v}</td></tr>`).join("");
+
+        const recent = computed.slice(Math.max(0, computed.length - 10)).reverse();
+        $("recentTable").innerHTML = recent.map(x => `<tr><td>${x.dateText || x.date.toISOString().slice(0,10)}</td><td>${fmt(x.score,0)}</td><td>${fmt(x.pillars.health,0)}</td><td>${fmt(x.pillars.family,0)}</td><td>${fmt(x.pillars.creation,0)}</td><td>${fmt(x.pillars.wealth,0)}</td></tr>`).join("");
+
+        $("footerNote").textContent = `Weights in use: Health ${Math.round(weights.health*100)}%, Family ${Math.round(weights.family*100)}%, Creation ${Math.round(weights.creation*100)}%, Wealth ${Math.round(weights.wealth*100)}%.`;
+
+        renderTrendGraph(computed);
+      } catch (err) {
+        $("subtitle").textContent = "Error loading data";
+        const box = $("nudgeBox");
+        box.className = "error";
+        box.innerHTML = `<strong>Error:</strong> ${err?.message || String(err)}`;
+        $("todayScore").textContent = "--";
+        $("statusText").textContent = "Error";
+        setDotClass($("statusPill"), "bad");
+      }
+    }
+
+    $("season").addEventListener("change", load);
+    $("refreshBtn").addEventListener("click", load);
+    wireTabs();
+    wireSurvey();
+    load();
+  </script>
+</body>
+</html>
