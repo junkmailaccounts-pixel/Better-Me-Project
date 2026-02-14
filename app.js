@@ -191,13 +191,47 @@ function renderTable7(rows) {
   return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 
+function lockCanvasSize(id, height = 260) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+
+  const parent = canvas.parentElement;
+  const parentWidth = Math.floor((parent && parent.clientWidth) || 800);
+
+  canvas.width = Math.max(320, parentWidth - 36);
+  canvas.height = height;
+  canvas.style.width = "100%";
+  canvas.style.height = `${height}px`;
+
+  return canvas;
+}
+
+
+async function fetchWithTimeout(url, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { cache: "no-store", signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function chartOptions() {
+  return {
+    responsive: false,
+    maintainAspectRatio: false,
+    animation: false,
+  };
+}
+
 async function main() {
   const status = document.getElementById("status");
 
   try {
     status.textContent = "Loading data from Google Sheet…";
 
-    const res = await fetch(CSV_URL, { cache: "no-store" });
+    const res = await fetchWithTimeout(CSV_URL, 15000);
     if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
     const text = await res.text();
 
@@ -260,13 +294,13 @@ async function main() {
     document.getElementById("streak").textContent = calcStreak(dates);
 
     // Charts
-    new Chart(document.getElementById("scoreChart"), {
+    new Chart(lockCanvasSize("scoreChart"), {
       type: "line",
       data: { labels: dates, datasets: [{ label: "Score", data: totals }] },
-      options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
-    new Chart(document.getElementById("pillarsChart"), {
+    new Chart(lockCanvasSize("pillarsChart"), {
       type: "line",
       data: {
         labels: last14.map(r => r.Date),
@@ -277,10 +311,10 @@ async function main() {
           { label: "Creation", data: last14.map(r => r.creation) },
         ],
       },
-      options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
-    new Chart(document.getElementById("flagsChart"), {
+    new Chart(lockCanvasSize("flagsChart"), {
       type: "bar",
       data: {
         labels: ["Low sleep", "Low deep work", "Escalations", "Impulse"],
@@ -288,7 +322,7 @@ async function main() {
           { label: "Count (14d)", data: [warn.lowSleep, warn.lowDeep, warn.escalation, warn.impulse] },
         ],
       },
-      options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
     // Table
@@ -302,4 +336,6 @@ async function main() {
   }
 }
 
-main();
+document.addEventListener("DOMContentLoaded", () => {
+  main();
+});
