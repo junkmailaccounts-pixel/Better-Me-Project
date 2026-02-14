@@ -284,10 +284,39 @@
     // =========================
     // 1) SET YOUR CSV URL HERE
     // =========================
-    // Use a Google Sheets "published as CSV" link.
+    // You can use either:
+    // - a Google Sheets share/edit link
+    // - a direct CSV/export link
     // Example format:
     // https://docs.google.com/spreadsheets/d/e/<PUB_ID>/pub?gid=<GID>&single=true&output=csv
     const CSV_URL = "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/edit?usp=sharing";
+
+    function toGoogleSheetCsvUrl(url){
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+
+      // Already a CSV/export endpoint.
+      if (/output=csv/.test(raw) || /tqx=out:csv/.test(raw)) return raw;
+
+      // Convert a normal sheet share/edit URL into an export URL.
+      const match = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (!match) return raw;
+
+      let gid = "0";
+      try {
+        const u = new URL(raw);
+        gid = u.searchParams.get("gid") || gid;
+        if (u.hash) {
+          const hashMatch = u.hash.match(/gid=(\d+)/);
+          if (hashMatch) gid = hashMatch[1];
+        }
+      } catch (_) {
+        const gidMatch = raw.match(/[?&#]gid=(\d+)/);
+        gid = gidMatch ? gidMatch[1] : gid;
+      }
+
+      return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=${gid}`;
+    }
 
     // ==========================================
     // 2) MAP YOUR SHEET COLUMN NAMES HERE
@@ -486,7 +515,8 @@
           throw new Error("CSV_URL is not set. Paste your published Google Sheets CSV link into CSV_URL.");
         }
 
-        const res = await fetch(CSV_URL, { cache: "no-store" });
+        const csvUrl = toGoogleSheetCsvUrl(CSV_URL);
+        const res = await fetch(csvUrl, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load CSV. HTTP " + res.status);
         const text = await res.text();
 
