@@ -2,7 +2,25 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   margin: 0;
   background: #f6f7fb;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(130, 99, 255, 0.14), transparent 42%),
+    radial-gradient(circle at 100% 12%, rgba(29, 201, 183, 0.12), transparent 38%),
+    linear-gradient(160deg, #f7f9ff 0%, #f3f5fb 40%, #edf1ff 100%);
+  background-attachment: fixed;
   color: #111;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.42) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.42) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black 55%, transparent 100%);
+  opacity: 0.22;
 }
 
 .wrap {
@@ -29,9 +47,13 @@ h1 {
 
 .card {
   background: #fff;
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 18px;
   padding: 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 30px rgba(35, 48, 100, 0.1);
+  backdrop-filter: blur(4px);
 }
 
 .kpi .label {
@@ -57,47 +79,3 @@ h1 {
 }
 
 canvas {
-  width: 100% !important;
-  height: 300px !important;
-}
-
-#table7 table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-#table7 th,
-#table7 td {
-  text-align: left;
-  padding: 8px 6px;
-  border-bottom: 1px solid #eee;
-}
-
-#table7 th {
-  font-weight: 600;
-}
-
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .span-2 {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 700px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .span-2 {
-    grid-column: span 1;
-  }
-
-  canvas {
-    height: 240px !important;
-  }
-}
