@@ -1,0 +1,103 @@
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  margin: 0;
+  background: #f6f7fb;
+  color: #111;
+}
+
+.wrap {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin-bottom: 6px;
+}
+
+.sub {
+  color: #444;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.kpi .label {
+  font-size: 12px;
+  color: #555;
+}
+
+.kpi .value {
+  font-size: 44px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+.kpi .small {
+  font-size: 13px;
+  color: #444;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+canvas {
+  width: 100% !important;
+  height: 300px !important;
+}
+
+#table7 table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#table7 th,
+#table7 td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid #eee;
+}
+
+#table7 th {
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-2 {
+    grid-column: span 1;
+  }
+
+  canvas {
+    height: 240px !important;
+  }
+}
