@@ -191,6 +191,27 @@ function renderTable7(rows) {
   return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
 }
 
+function lockCanvasSize(id, height = 260) {
+  const canvas = document.getElementById(id);
+  const parent = canvas?.parentElement;
+  const parentWidth = Math.floor(parent?.clientWidth || 800);
+
+  canvas.width = Math.max(320, parentWidth - 36);
+  canvas.height = height;
+  canvas.style.width = "100%";
+  canvas.style.height = `${height}px`;
+
+  return canvas;
+}
+
+function chartOptions() {
+  return {
+    responsive: false,
+    maintainAspectRatio: false,
+    animation: false,
+  };
+}
+
 async function main() {
   const status = document.getElementById("status");
 
@@ -216,25 +237,7 @@ async function main() {
     if (rows.length === 0) {
       status.textContent =
         "No usable rows after parsing. Confirm your sheet has Date or Timestamp values.";
-      return;
-    }
-
-    const computed = rows.map(r => {
-      const s = computeScores(r);
-      return {
-        ...r,
-        total: s.total,
-        health: s.health,
-        family: s.family,
-        wealth: s.wealth,
-        creation: s.creation,
-        lowSleep: s.flags.lowSleep,
-        lowDeep: s.flags.lowDeep,
-        escalation: s.flags.escalation,
-        impulse: s.flags.impulse,
-      };
-    });
-
+@@ -238,68 +259,68 @@ async function main() {
     const totals = computed.map(r => r.total);
     const avg7 = rollingAvg(totals, 7);
     const today = computed[computed.length - 1];
@@ -261,12 +264,15 @@ async function main() {
 
     // Charts
     new Chart(document.getElementById("scoreChart"), {
+    new Chart(lockCanvasSize("scoreChart"), {
       type: "line",
       data: { labels: dates, datasets: [{ label: "Score", data: totals }] },
       options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
     new Chart(document.getElementById("pillarsChart"), {
+    new Chart(lockCanvasSize("pillarsChart"), {
       type: "line",
       data: {
         labels: last14.map(r => r.Date),
@@ -278,9 +284,11 @@ async function main() {
         ],
       },
       options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
     new Chart(document.getElementById("flagsChart"), {
+    new Chart(lockCanvasSize("flagsChart"), {
       type: "bar",
       data: {
         labels: ["Low sleep", "Low deep work", "Escalations", "Impulse"],
@@ -289,6 +297,7 @@ async function main() {
         ],
       },
       options: { responsive: true, maintainAspectRatio: false },
+      options: chartOptions(),
     });
 
     // Table
