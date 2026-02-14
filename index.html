@@ -766,6 +766,18 @@
       $("surveyStatus").textContent = text;
     }
 
+    function validateSheetWriteUrl(url){
+      const normalized = String(url || "").trim();
+      if (!normalized) return { ok: false, error: "empty", url: "" };
+      if (!/^https:\/\//i.test(normalized)) {
+        return { ok: false, error: "Endpoint must be a valid https URL.", url: "" };
+      }
+      if (!/\/exec(?:$|[?#])/.test(normalized)) {
+        return { ok: false, error: "Use the deployed Apps Script Web App URL ending in /exec.", url: "" };
+      }
+      return { ok: true, error: "", url: normalized };
+    }
+
     function getSheetWriteUrl(){
       const stored = localStorage.getItem(SHEET_WRITE_URL_STORAGE_KEY) || "";
       return String(stored || SHEET_WRITE_URL || "").trim();
@@ -846,10 +858,23 @@
         setSurveyStatus(`Please complete all questions. Missing: ${missing[0].label}`);
         return;
       }
-      const sheetWriteUrl = getSheetWriteUrl();
-      if (!sheetWriteUrl) {
-        setSurveyStatus("Set your Apps Script endpoint in the 'Apps Script Web App URL' box and click Save endpoint.");
+      const storedEndpoint = getSheetWriteUrl();
+      const typedEndpoint = String($("writeUrlInput")?.value || "").trim();
+      const endpointCandidate = storedEndpoint || typedEndpoint;
+      const endpointValidation = validateSheetWriteUrl(endpointCandidate);
+      if (!endpointValidation.ok) {
+        if (endpointValidation.error === "empty") {
+          setSurveyStatus("Set your Apps Script endpoint in the 'Apps Script Web App URL' box and click Save endpoint.");
+        } else {
+          setSurveyStatus(endpointValidation.error);
+        }
         return;
+      }
+      const sheetWriteUrl = endpointValidation.url;
+
+      // If user pasted but forgot to click save, accept it and persist now.
+      if (!storedEndpoint && typedEndpoint === sheetWriteUrl) {
+        setSheetWriteUrl(sheetWriteUrl);
       }
 
       setSurveyStatus("Submitting to Google Sheet...");
@@ -909,15 +934,12 @@
           setSurveyStatus("Write endpoint cleared.");
           return;
         }
-        if (!/^https:\/\//i.test(url)) {
-          setSurveyStatus("Endpoint must be a valid https URL.");
+        const validation = validateSheetWriteUrl(url);
+        if (!validation.ok) {
+          setSurveyStatus(validation.error);
           return;
         }
-        if (!/\/exec(?:$|[?#])/.test(url)) {
-          setSurveyStatus("Use the deployed Apps Script Web App URL ending in /exec.");
-          return;
-        }
-        setSheetWriteUrl(url);
+        setSheetWriteUrl(validation.url);
         setSurveyStatus("Write endpoint saved.");
       });
 
