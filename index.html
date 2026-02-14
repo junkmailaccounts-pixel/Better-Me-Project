@@ -78,4 +78,579 @@
     .warn{background:var(--warn)}
     .bad{background:var(--bad)}
     .kpiGrid{
-      display:
+      display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;
+    }
+    @media (max-width: 920px){
+      .kpiGrid{grid-template-columns:1fr}
+    }
+    .kpi{
+      background: var(--panel2);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding:12px;
+    }
+    .kpi .label{color:var(--muted);font-size:12px}
+    .kpi .value{margin-top:6px;font-size:18px;font-weight:650}
+    .kpi .tiny{margin-top:4px;color:var(--muted);font-size:12px}
+    .sectionTitle{
+      margin:0 0 10px 0;font-size:14px;color:var(--muted);
+      letter-spacing:0.2px;text-transform:uppercase;
+    }
+    .barWrap{margin-top:10px}
+    .bar{
+      height:10px;background:#0a1220;border:1px solid var(--border);
+      border-radius:999px;overflow:hidden;
+    }
+    .bar > div{height:100%}
+    .barLegend{
+      margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;
+    }
+    .legendItem{display:flex;gap:8px;align-items:center}
+    .mini{
+      width:10px;height:10px;border-radius:3px;background:#2b3c5b;
+    }
+    .mini.h{background:rgba(61,220,151,0.85)}
+    .mini.f{background:rgba(138,180,255,0.85)}
+    .mini.c{background:rgba(242,201,76,0.95)}
+    .mini.w{background:rgba(255,107,107,0.9)}
+    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width: 920px){.twoCol{grid-template-columns:1fr}}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+    th{color:var(--muted);font-weight:600}
+    .muted{color:var(--muted)}
+    .trendUp{color:var(--good);font-weight:650}
+    .trendDown{color:var(--bad);font-weight:650}
+    .trendFlat{color:var(--muted);font-weight:650}
+    .nudge{
+      border-left:4px solid var(--warn);
+      background: rgba(242,201,76,0.06);
+      padding:10px 12px;border-radius:10px;border:1px solid rgba(242,201,76,0.25);
+      color:var(--text);
+      line-height:1.35;
+    }
+    .nudge strong{font-weight:750}
+    .error{
+      border-left:4px solid var(--bad);
+      background: rgba(255,107,107,0.06);
+      padding:10px 12px;border-radius:10px;border:1px solid rgba(255,107,107,0.25);
+      color:var(--text);
+      line-height:1.35;
+    }
+    .footer{margin-top:16px;color:var(--muted);font-size:12px}
+    .controls{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;
+    }
+    .select{
+      background: var(--panel2);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:12px;
+    }
+    .btn{
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+    .btn:hover{background:rgba(255,255,255,0.05)}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Dashboard</h1>
+        <div class="sub" id="subtitle">Loading data…</div>
+      </div>
+      <div class="right">
+        <div class="controls">
+          <label class="muted" for="season">Season</label>
+          <select id="season" class="select">
+            <option value="default">Default</option>
+            <option value="family">Family heavy</option>
+            <option value="health">Health heavy</option>
+            <option value="build">Build mode</option>
+          </select>
+          <button class="btn" id="refreshBtn" type="button">Refresh</button>
+        </div>
+        <div style="margin-top:8px" class="muted">
+          Read only view from your Google Sheet CSV.
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="row">
+          <div class="bigScore">
+            <div class="scoreNum" id="todayScore">--</div>
+            <div class="scoreMeta">
+              <div id="todayLabel">Today score</div>
+              <div class="muted" id="deltaLabel">--</div>
+            </div>
+          </div>
+          <div class="pill" id="statusPill">
+            <span class="dot warn"></span>
+            <span id="statusText">Loading</span>
+          </div>
+        </div>
+
+        <div class="barWrap">
+          <div class="bar" title="Pillar contributions to Today score">
+            <div id="barInner" style="display:flex;width:100%">
+              <div id="barH" style="width:25%" class="mini h"></div>
+              <div id="barF" style="width:25%" class="mini f"></div>
+              <div id="barC" style="width:25%" class="mini c"></div>
+              <div id="barW" style="width:25%" class="mini w"></div>
+            </div>
+          </div>
+          <div class="barLegend">
+            <div class="legendItem"><span class="mini h"></span>Health <span class="muted" id="hVal">--</span></div>
+            <div class="legendItem"><span class="mini f"></span>Family <span class="muted" id="fVal">--</span></div>
+            <div class="legendItem"><span class="mini c"></span>Creation <span class="muted" id="cVal">--</span></div>
+            <div class="legendItem"><span class="mini w"></span>Wealth <span class="muted" id="wVal">--</span></div>
+          </div>
+        </div>
+
+        <div class="kpiGrid">
+          <div class="kpi">
+            <div class="label">Trend vs yesterday</div>
+            <div class="value" id="trendArrow">--</div>
+            <div class="tiny" id="trendDetail">--</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Last 7 days average</div>
+            <div class="value" id="avg7">--</div>
+            <div class="tiny" id="avg7Detail">--</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Warnings</div>
+            <div class="value" id="warnCount">--</div>
+            <div class="tiny" id="warnDetail">--</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px" class="nudge" id="nudgeBox">
+          <strong>Nudge:</strong> Loading…
+        </div>
+
+        <div style="margin-top:12px" class="twoCol">
+          <div class="kpi">
+            <div class="label">Inputs</div>
+            <div class="tiny muted">Sleep, steps, deep work, spending triggers</div>
+            <table style="margin-top:6px">
+              <tbody id="inputsTable"></tbody>
+            </table>
+          </div>
+          <div class="kpi">
+            <div class="label">Outputs</div>
+            <div class="tiny muted">Pillars and total score</div>
+            <table style="margin-top:6px">
+              <tbody id="outputsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="sectionTitle">Recent days</h2>
+        <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Score</th>
+              <th>Health</th>
+              <th>Family</th>
+              <th>Creation</th>
+              <th>Wealth</th>
+            </tr>
+          </thead>
+          <tbody id="recentTable"></tbody>
+        </table>
+        <div class="footer" id="footerNote">--</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // 1) SET YOUR CSV URL HERE
+    // =========================
+    // Use a Google Sheets "published as CSV" link.
+    // Example format:
+    // https://docs.google.com/spreadsheets/d/e/<PUB_ID>/pub?gid=<GID>&single=true&output=csv
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/edit?usp=sharing";
+
+    // ==========================================
+    // 2) MAP YOUR SHEET COLUMN NAMES HERE
+    // ==========================================
+    // Update these to match your exact header names in the CSV.
+    // Required:
+    // - date
+    // - totalScore (or we will compute weighted score if pillars exist)
+    // - pillars: healthScore, familyScore, creationScore, wealthScore
+    //
+    // Optional inputs you mentioned:
+    // - sleepHours, steps, deepWorkMinutes, impulseSpendCount
+    const COL = {
+      date: "Date",
+      totalScore: "Total Score",
+      healthScore: "Health",
+      familyScore: "Family",
+      creationScore: "Creation",
+      wealthScore: "Wealth",
+      sleepHours: "Sleep Hours",
+      steps: "Steps",
+      deepWorkMinutes: "Deep Work Minutes",
+      impulseSpendCount: "Impulse Spend Count"
+    };
+
+    // ==========================================
+    // 3) SEASONAL WEIGHTS (adjust over time)
+    // ==========================================
+    // These weights are used to compute a weighted total when totalScore is missing
+    // OR to compute the "pillar contribution bar" even if totalScore exists.
+    const WEIGHTS = {
+      default: { health: 0.35, family: 0.35, creation: 0.20, wealth: 0.10 },
+      family:   { health: 0.30, family: 0.45, creation: 0.15, wealth: 0.10 },
+      health:   { health: 0.45, family: 0.30, creation: 0.15, wealth: 0.10 },
+      build:    { health: 0.30, family: 0.30, creation: 0.30, wealth: 0.10 }
+    };
+
+    // ==========================================
+    // 4) THRESHOLDS FOR WARNINGS AND NUDGES
+    // ==========================================
+    const THRESH = {
+      lowScore: 75,
+      sleepLow: 7.0,
+      stepsLow: 6000,
+      deepWorkLowMin: 60,
+      impulseSpendHigh: 1
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function parseCSV(text){
+      // Simple CSV parser that handles quoted fields.
+      const rows = [];
+      let row = [];
+      let cur = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++){
+        const c = text[i];
+        const next = text[i+1];
+
+        if (c === '"' && inQuotes && next === '"'){ // escaped quote
+          cur += '"';
+          i++;
+          continue;
+        }
+        if (c === '"'){
+          inQuotes = !inQuotes;
+          continue;
+        }
+        if (c === ',' && !inQuotes){
+          row.push(cur);
+          cur = "";
+          continue;
+        }
+        if ((c === '\n' || c === '\r') && !inQuotes){
+          if (cur.length || row.length){
+            row.push(cur);
+            rows.push(row);
+            row = [];
+            cur = "";
+          }
+          continue;
+        }
+        cur += c;
+      }
+      if (cur.length || row.length){
+        row.push(cur);
+        rows.push(row);
+      }
+      if (rows.length === 0) return [];
+
+      const headers = rows[0].map(h => h.trim());
+      const data = [];
+      for (let r = 1; r < rows.length; r++){
+        const obj = {};
+        for (let c = 0; c < headers.length; c++){
+          obj[headers[c]] = (rows[r][c] ?? "").trim();
+        }
+        // Skip empty lines
+        const any = Object.values(obj).some(v => v !== "");
+        if (any) data.push(obj);
+      }
+      return data;
+    }
+
+    function toNum(v){
+      if (v === null || v === undefined) return null;
+      const s = String(v).replace(/[^0-9.\-]/g,"").trim();
+      if (!s) return null;
+      const n = Number(s);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function parseDate(v){
+      // Accept YYYY-MM-DD, MM/DD/YYYY, etc.
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function fmt(n, digits=0){
+      if (n === null || n === undefined || !Number.isFinite(n)) return "--";
+      return n.toFixed(digits);
+    }
+
+    function trendArrow(delta){
+      if (!Number.isFinite(delta)) return {txt:"--", cls:"trendFlat"};
+      if (delta > 0.5) return {txt:"▲ Up", cls:"trendUp"};
+      if (delta < -0.5) return {txt:"▼ Down", cls:"trendDown"};
+      return {txt:"▬ Flat", cls:"trendFlat"};
+    }
+
+    function pickSeasonWeights(){
+      const key = $("season").value || "default";
+      return WEIGHTS[key] || WEIGHTS.default;
+    }
+
+    function computeWeightedTotal(p, w){
+      // assume pillar scores are 0-100
+      if (![p.health, p.family, p.creation, p.wealth].every(x => Number.isFinite(x))) return null;
+      return p.health*w.health + p.family*w.family + p.creation*w.creation + p.wealth*w.wealth;
+    }
+
+    function statusForScore(score){
+      if (!Number.isFinite(score)) return {label:"No data", dot:"warn"};
+      if (score >= 85) return {label:"On track", dot:"good"};
+      if (score >= THRESH.lowScore) return {label:"Watch it", dot:"warn"};
+      return {label:"Needs attention", dot:"bad"};
+    }
+
+    function buildNudge(last3){
+      // last3: most recent 3 rows
+      // Priority: repeated misses in the last 2-3 days
+      let misses = [];
+      const recent = last3.filter(x => x);
+
+      const sleepMiss = recent.filter(x => Number.isFinite(x.sleep) && x.sleep < THRESH.sleepLow).length;
+      const stepsMiss = recent.filter(x => Number.isFinite(x.steps) && x.steps < THRESH.stepsLow).length;
+      const deepMiss  = recent.filter(x => Number.isFinite(x.deep) && x.deep < THRESH.deepWorkLowMin).length;
+      const spendHigh = recent.filter(x => Number.isFinite(x.impulse) && x.impulse > THRESH.impulseSpendHigh).length;
+      const scoreLow  = recent.filter(x => Number.isFinite(x.score) && x.score < THRESH.lowScore).length;
+
+      if (scoreLow >= 2) misses.push("Your score has been low for two of the last three days. Pick one lever and fix it today.");
+      if (sleepMiss >= 2) misses.push("Sleep is slipping. Protect your bedtime and aim for at least " + THRESH.sleepLow + " hours.");
+      if (deepMiss >= 2)  misses.push("Deep work has been light. Block 60 to 90 minutes early today.");
+      if (stepsMiss >= 2) misses.push("Movement is low. Get a short walk in before lunch.");
+      if (spendHigh >= 1) misses.push("Spending triggers showed up recently. Pause one day before any non essential purchase.");
+
+      if (misses.length === 0) {
+        return "You are steady. Keep the basics tight today. Sleep, a focused block, and one family connection.";
+      }
+
+      // Choose the top 2
+      return misses.slice(0,2).join(" ");
+    }
+
+    function buildWarnings(row){
+      const warns = [];
+      if (Number.isFinite(row.score) && row.score < THRESH.lowScore) warns.push("Low score");
+      if (Number.isFinite(row.sleep) && row.sleep < THRESH.sleepLow) warns.push("Low sleep");
+      if (Number.isFinite(row.steps) && row.steps < THRESH.stepsLow) warns.push("Low steps");
+      if (Number.isFinite(row.deep) && row.deep < THRESH.deepWorkLowMin) warns.push("Low deep work");
+      if (Number.isFinite(row.impulse) && row.impulse > THRESH.impulseSpendHigh) warns.push("Impulse spend");
+      return warns;
+    }
+
+    function setDotClass(el, dot){
+      const d = el.querySelector(".dot");
+      d.classList.remove("good","warn","bad");
+      d.classList.add(dot);
+    }
+
+    async function load(){
+      try{
+        if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")){
+          throw new Error("CSV_URL is not set. Paste your published Google Sheets CSV link into CSV_URL.");
+        }
+
+        const res = await fetch(CSV_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load CSV. HTTP " + res.status);
+        const text = await res.text();
+
+        const raw = parseCSV(text);
+
+        // Normalize rows
+        const rows = raw.map(r => {
+          const d = parseDate(r[COL.date]);
+          const health = toNum(r[COL.healthScore]);
+          const family = toNum(r[COL.familyScore]);
+          const creation = toNum(r[COL.creationScore]);
+          const wealth = toNum(r[COL.wealthScore]);
+          const total = toNum(r[COL.totalScore]);
+
+          const sleep = toNum(r[COL.sleepHours]);
+          const steps = toNum(r[COL.steps]);
+          const deep = toNum(r[COL.deepWorkMinutes]);
+          const impulse = toNum(r[COL.impulseSpendCount]);
+
+          return {
+            raw: r,
+            date: d,
+            dateText: r[COL.date] || "",
+            pillars: { health, family, creation, wealth },
+            totalRaw: total,
+            sleep, steps, deep, impulse
+          };
+        }).filter(x => x.date);
+
+        rows.sort((a,b) => a.date - b.date);
+
+        if (rows.length === 0) throw new Error("No dated rows found. Check your Date column mapping.");
+
+        const w = pickSeasonWeights();
+
+        // Build computed scores
+        const computed = rows.map(x => {
+          const weighted = computeWeightedTotal(x.pillars, w);
+          const score = Number.isFinite(x.totalRaw) ? x.totalRaw : weighted;
+          return { ...x, score, weighted };
+        });
+
+        const today = computed[computed.length - 1];
+        const yesterday = computed.length >= 2 ? computed[computed.length - 2] : null;
+
+        // Headline
+        const todayScore = today.score;
+        $("todayScore").textContent = fmt(todayScore, 0);
+
+        const delta = (yesterday && Number.isFinite(yesterday.score) && Number.isFinite(todayScore))
+          ? (todayScore - yesterday.score)
+          : null;
+
+        $("deltaLabel").textContent = Number.isFinite(delta) ? ( (delta>=0?"+":"") + fmt(delta,0) + " vs yesterday") : "No prior day to compare";
+
+        const t = trendArrow(delta);
+        $("trendArrow").textContent = t.txt;
+        $("trendArrow").className = t.cls;
+        $("trendDetail").textContent = Number.isFinite(delta) ? ("Change: " + ((delta>=0?"+":"") + fmt(delta,0))) : "--";
+
+        // Status
+        const st = statusForScore(todayScore);
+        $("statusText").textContent = st.label;
+        setDotClass($("statusPill"), st.dot);
+
+        // Averages
+        const last7 = computed.slice(Math.max(0, computed.length - 7));
+        const avg7 = last7.map(x => x.score).filter(Number.isFinite);
+        const avg7v = avg7.length ? (avg7.reduce((a,b)=>a+b,0)/avg7.length) : null;
+        $("avg7").textContent = fmt(avg7v, 0);
+        $("avg7Detail").textContent = avg7.length ? (avg7.length + " days") : "No data";
+
+        // Pillar values and contribution bar
+        const p = today.pillars;
+        const h = p.health, f = p.family, c = p.creation, ww = p.wealth;
+
+        $("hVal").textContent = fmt(h,0);
+        $("fVal").textContent = fmt(f,0);
+        $("cVal").textContent = fmt(c,0);
+        $("wVal").textContent = fmt(ww,0);
+
+        // Contribution widths use weights (not raw pillars)
+        const totW = w.health + w.family + w.creation + w.wealth;
+        const wh = (w.health/totW)*100;
+        const wf = (w.family/totW)*100;
+        const wc = (w.creation/totW)*100;
+        const wwe = (w.wealth/totW)*100;
+        $("barH").style.width = wh + "%";
+        $("barF").style.width = wf + "%";
+        $("barC").style.width = wc + "%";
+        $("barW").style.width = wwe + "%";
+
+        // Warnings
+        const warnsToday = buildWarnings({ score: todayScore, sleep: today.sleep, steps: today.steps, deep: today.deep, impulse: today.impulse });
+        $("warnCount").textContent = String(warnsToday.length);
+        $("warnDetail").textContent = warnsToday.length ? warnsToday.join(", ") : "None";
+
+        // Nudge based on last 3 days
+        const last3 = computed.slice(Math.max(0, computed.length - 3)).reverse().map(x => ({
+          score: x.score, sleep: x.sleep, steps: x.steps, deep: x.deep, impulse: x.impulse
+        }));
+        $("nudgeBox").innerHTML = "<strong>Nudge:</strong> " + buildNudge(last3);
+
+        // Subtitle
+        const seasonKey = $("season").value;
+        const seasonName = seasonKey === "default" ? "Default weights" :
+                           seasonKey === "family" ? "Family heavy weights" :
+                           seasonKey === "health" ? "Health heavy weights" :
+                           "Build mode weights";
+        $("subtitle").textContent = "Latest entry: " + (today.dateText || today.date.toDateString()) + "  |  " + seasonName;
+
+        // Inputs table
+        const inputs = [
+          ["Sleep hours", fmt(today.sleep, 1)],
+          ["Steps", fmt(today.steps, 0)],
+          ["Deep work minutes", fmt(today.deep, 0)],
+          ["Impulse spend count", fmt(today.impulse, 0)]
+        ];
+        $("inputsTable").innerHTML = inputs.map(([k,v]) =>
+          `<tr><td class="muted">${k}</td><td>${v}</td></tr>`
+        ).join("");
+
+        // Outputs table
+        const outputs = [
+          ["Total score", fmt(todayScore, 0)],
+          ["Health", fmt(h, 0)],
+          ["Family", fmt(f, 0)],
+          ["Creation", fmt(c, 0)],
+          ["Wealth", fmt(ww, 0)]
+        ];
+        $("outputsTable").innerHTML = outputs.map(([k,v]) =>
+          `<tr><td class="muted">${k}</td><td>${v}</td></tr>`
+        ).join("");
+
+        // Recent table (last 10)
+        const recent = computed.slice(Math.max(0, computed.length - 10)).reverse();
+        $("recentTable").innerHTML = recent.map(x => `
+          <tr>
+            <td>${x.dateText || x.date.toISOString().slice(0,10)}</td>
+            <td>${fmt(x.score,0)}</td>
+            <td>${fmt(x.pillars.health,0)}</td>
+            <td>${fmt(x.pillars.family,0)}</td>
+            <td>${fmt(x.pillars.creation,0)}</td>
+            <td>${fmt(x.pillars.wealth,0)}</td>
+          </tr>
+        `).join("");
+
+        $("footerNote").textContent =
+          "Weights in use: Health " + Math.round(w.health*100) + "%, Family " + Math.round(w.family*100) + "%, Creation " + Math.round(w.creation*100) + "%, Wealth " + Math.round(w.wealth*100) + "%.";
+
+      } catch (err){
+        $("subtitle").textContent = "Error loading data";
+        const box = $("nudgeBox");
+        box.className = "error";
+        box.innerHTML = "<strong>Error:</strong> " + (err?.message || String(err));
+        $("todayScore").textContent = "--";
+        $("statusText").textContent = "Error";
+        setDotClass($("statusPill"), "bad");
+      }
+    }
+
+    $("season").addEventListener("change", load);
+    $("refreshBtn").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>
