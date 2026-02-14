@@ -423,6 +423,30 @@
       return data;
     }
 
+    function cleanHeader(text){
+      return String(text || "").replace(/^﻿/, "").trim();
+    }
+
+    function findColumnName(row, preferred, fallbacks = []){
+      const keys = Object.keys(row || {});
+      const wanted = [preferred, ...fallbacks]
+        .map(cleanHeader)
+        .filter(Boolean)
+        .map(v => v.toLowerCase());
+
+      for (const key of keys){
+        const normalized = cleanHeader(key).toLowerCase();
+        if (wanted.includes(normalized)) return key;
+      }
+
+      return null;
+    }
+
+    function valueFromRow(row, preferred, fallbacks = []){
+      const key = findColumnName(row, preferred, fallbacks);
+      return key ? row[key] : undefined;
+    }
+
     function toNum(v){
       if (v === null || v === undefined) return null;
       const s = String(v).replace(/[^0-9.\-]/g,"").trim();
@@ -432,9 +456,25 @@
     }
 
     function parseDate(v){
-      // Accept YYYY-MM-DD, MM/DD/YYYY, etc.
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? null : d;
+      const raw = String(v || "").trim();
+      if (!raw) return null;
+
+      if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        const d = new Date(raw.slice(0, 10) + "T00:00:00");
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+
+      const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+\d{1,2}:\d{2}(?::\d{2})?)?/);
+      if (mdy) {
+        const mm = mdy[1].padStart(2, "0");
+        const dd = mdy[2].padStart(2, "0");
+        const yyyy = mdy[3].length === 2 ? `20${mdy[3]}` : mdy[3];
+        const d = new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+        return Number.isNaN(d.getTime()) ? null : d;
+      }
+
+      const d = new Date(raw);
+      return Number.isNaN(d.getTime()) ? null : d;
     }
 
     function fmt(n, digits=0){
@@ -455,9 +495,13 @@
     }
 
     function computeWeightedTotal(p, w){
-      // assume pillar scores are 0-100
       if (![p.health, p.family, p.creation, p.wealth].every(x => Number.isFinite(x))) return null;
-      return p.health*w.health + p.family*w.family + p.creation*w.creation + p.wealth*w.wealth;
+
+      // Support either 0-25 pillar inputs (habit scoring) or 0-100 pillar inputs.
+      const maxPillar = Math.max(p.health, p.family, p.creation, p.wealth);
+      const scale = maxPillar <= 25 ? 4 : 1;
+
+      return (p.health*scale)*w.health + (p.family*scale)*w.family + (p.creation*scale)*w.creation + (p.wealth*scale)*w.wealth;
     }
 
     function statusForScore(score){
@@ -503,6 +547,52 @@
       return warns;
     }
 
+    function boolNum(v){
+      const n = toNum(v);
+      return Number.isFinite(n) ? (n > 0 ? 1 : 0) : 0;
+    }
+
+    function pointsByBands(value, bands){
+      for (const [min, pts] of bands){
+        if (value >= min) return pts;
+      }
+      return 0;
+    }
+
+    function derivePillarsFromHabits(row){
+      const sleep = toNum(valueFromRow(row, "SleepHours", ["Sleep Hours", "sleepHours"])) || 0;
+      const steps = toNum(valueFromRow(row, "Steps", ["steps"])) || 0;
+      const kidsMin = toNum(valueFromRow(row, "KidsMinutes", ["Kids Minutes"])) || 0;
+      const deepMin = toNum(valueFromRow(row, "DeepWorkMinutes", ["Deep Work Minutes", "deepWorkMinutes"])) || 0;
+
+      const health =
+        pointsByBands(sleep, [[7, 8], [6, 6], [5, 3]]) +
+        pointsByBands(steps, [[10000, 6], [7000, 4], [4000, 2]]) +
+        boolNum(valueFromRow(row, "StrengthYN", ["Strength YN"])) * 4 +
+        boolNum(valueFromRow(row, "ProteinYN", ["Protein YN"])) * 3 +
+        boolNum(valueFromRow(row, "CaloriesYN", ["Calories YN"])) * 4;
+
+      const family =
+        pointsByBands(kidsMin, [[60, 10], [30, 7], [15, 4], [1, 2]]) +
+        boolNum(valueFromRow(row, "ProactiveYN", ["Proactive YN"])) * 5 +
+        boolNum(valueFromRow(row, "FollowThroughYN", ["Follow Through YN"])) * 5 +
+        boolNum(valueFromRow(row, "NoEscalationYN", ["No Escalation YN"])) * 5;
+
+      const wealth =
+        boolNum(valueFromRow(row, "NoImpulseYN", ["No Impulse YN"])) * 8 +
+        boolNum(valueFromRow(row, "TrackedSpendingYN", ["Tracked Spending YN"])) * 5 +
+        boolNum(valueFromRow(row, "InvestYN", ["Invest YN"])) * 7 +
+        boolNum(valueFromRow(row, "Skill20YN", ["Skill20 YN"])) * 5;
+
+      const creation =
+        pointsByBands(deepMin, [[120, 10], [60, 7], [30, 4], [1, 2]]) +
+        boolNum(valueFromRow(row, "ShippedYN", ["Shipped YN"])) * 7 +
+        boolNum(valueFromRow(row, "BuildArtifactYN", ["Build Artifact YN"])) * 5 +
+        boolNum(valueFromRow(row, "TomorrowOneSentenceYN", ["Tomorrow One Sentence YN"])) * 3;
+
+      return { health, family, creation, wealth };
+    }
+
     function setDotClass(el, dot){
       const d = el.querySelector(".dot");
       d.classList.remove("good","warn","bad");
@@ -524,22 +614,31 @@
 
         // Normalize rows
         const rows = raw.map(r => {
-          const d = parseDate(r[COL.date]);
-          const health = toNum(r[COL.healthScore]);
-          const family = toNum(r[COL.familyScore]);
-          const creation = toNum(r[COL.creationScore]);
-          const wealth = toNum(r[COL.wealthScore]);
-          const total = toNum(r[COL.totalScore]);
+          const dateVal = valueFromRow(r, COL.date, ["Timestamp", "timestamp", "Day", "day"]);
+          const d = parseDate(dateVal);
+          let health = toNum(valueFromRow(r, COL.healthScore, ["HealthScore"]));
+          let family = toNum(valueFromRow(r, COL.familyScore, ["FamilyScore"]));
+          let creation = toNum(valueFromRow(r, COL.creationScore, ["CreationScore"]));
+          let wealth = toNum(valueFromRow(r, COL.wealthScore, ["WealthScore"]));
 
-          const sleep = toNum(r[COL.sleepHours]);
-          const steps = toNum(r[COL.steps]);
-          const deep = toNum(r[COL.deepWorkMinutes]);
-          const impulse = toNum(r[COL.impulseSpendCount]);
+          if (![health, family, creation, wealth].every(Number.isFinite)) {
+            const derived = derivePillarsFromHabits(r);
+            health = Number.isFinite(health) ? health : derived.health;
+            family = Number.isFinite(family) ? family : derived.family;
+            creation = Number.isFinite(creation) ? creation : derived.creation;
+            wealth = Number.isFinite(wealth) ? wealth : derived.wealth;
+          }
+          const total = toNum(valueFromRow(r, COL.totalScore, ["Score", "Total"]));
+
+          const sleep = toNum(valueFromRow(r, COL.sleepHours, ["SleepHours"]));
+          const steps = toNum(valueFromRow(r, COL.steps));
+          const deep = toNum(valueFromRow(r, COL.deepWorkMinutes, ["DeepWorkMinutes"]));
+          const impulse = toNum(valueFromRow(r, COL.impulseSpendCount, ["ImpulseSpends", "Impulse"]));
 
           return {
             raw: r,
             date: d,
-            dateText: r[COL.date] || "",
+            dateText: dateVal || "",
             pillars: { health, family, creation, wealth },
             totalRaw: total,
             sleep, steps, deep, impulse
