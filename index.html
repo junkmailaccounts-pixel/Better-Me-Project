@@ -204,7 +204,7 @@
     <div class="card surveyCard">
       <div class="surveyTop">
         <div>
-          <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
+          <h2 class="surveyTitle">Daily check-in (15 questions)</h2>
           <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
         </div>
         <div class="controls">
@@ -710,11 +710,15 @@
         boolNum(valueFromRow(row, "ProteinYN", ["Protein YN"])) * 3 +
         boolNum(valueFromRow(row, "CaloriesYN", ["Calories YN"])) * 4;
 
+      const spouseQualityTime = boolNum(valueFromRow(row, "SpouseQualityTimeYN", ["Spouse Quality Time YN", "ProactiveYN", "Proactive YN"]));
+      const spouseKindWords = boolNum(valueFromRow(row, "SpouseKindWordsYN", ["Spouse Kind Words YN", "NoEscalationYN", "No Escalation YN"]));
+      const spouseFollowThrough = boolNum(valueFromRow(row, "SpouseFollowThroughYN", ["Spouse Follow Through YN", "FollowThroughYN", "Follow Through YN"]));
+
       const family =
         pointsByBands(kidsMin, [[60, 10], [30, 7], [15, 4], [1, 2]]) +
-        boolNum(valueFromRow(row, "ProactiveYN", ["Proactive YN"])) * 5 +
-        boolNum(valueFromRow(row, "FollowThroughYN", ["Follow Through YN"])) * 5 +
-        boolNum(valueFromRow(row, "NoEscalationYN", ["No Escalation YN"])) * 5;
+        spouseQualityTime * 5 +
+        spouseKindWords * 5 +
+        spouseFollowThrough * 5;
 
       const wealth =
         boolNum(valueFromRow(row, "NoImpulseYN", ["No Impulse YN"])) * 8 +
@@ -745,11 +749,14 @@
       { key: "StrengthYN", label: "5) Did you do strength training? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
       { key: "ProteinYN", label: "6) Hit protein goal? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
       { key: "CaloriesYN", label: "7) Stayed within calories? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
-      { key: "ProactiveYN", label: "8) Was parenting proactive? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
-      { key: "NoEscalationYN", label: "9) No escalations? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
-      { key: "NoImpulseYN", label: "10) No impulse spending? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
-      { key: "TasksCompleted", label: "11) How many tasks did you complete today?", type: "number", step: "1", min: "0", hint: "Count completed tasks from your list" },
-      { key: "PlanningYN", label: "12) Did you do daily planning/task orientation? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1", hint: "Use 1 if you planned your tasks before/during the day" }
+      { key: "SpouseQualityTimeYN", label: "8) Did you intentionally spend quality time with your spouse today? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "SpouseKindWordsYN", label: "9) Did you say something kind/affirming to your spouse today? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "SpouseFollowThroughYN", label: "10) Did you follow through on something your spouse wanted done? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "NoImpulseYN", label: "11) No impulse spending? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "TasksCompleted", label: "12) How many tasks did you complete today?", type: "number", step: "1", min: "0", hint: "Count completed tasks from your list" },
+      { key: "PlanningYN", label: "13) Did you do daily planning/task orientation? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1", hint: "Use 1 if you planned your tasks before/during the day" },
+      { key: "TrackedSpendingYN", label: "14) Did you track your spending today? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" },
+      { key: "InvestYN", label: "15) Did you make progress on investing/wealth actions today? (1=yes, 0=no)", type: "number", step: "1", min: "0", max: "1" }
     ];
 
     let surveyIndex = 0;
@@ -811,14 +818,17 @@
         StrengthYN: surveyAnswers.StrengthYN ?? 0,
         ProteinYN: surveyAnswers.ProteinYN ?? 0,
         CaloriesYN: surveyAnswers.CaloriesYN ?? 0,
-        ProactiveYN: surveyAnswers.ProactiveYN ?? 0,
-        NoEscalationYN: surveyAnswers.NoEscalationYN ?? 0,
+        SpouseQualityTimeYN: surveyAnswers.SpouseQualityTimeYN ?? 0,
+        SpouseKindWordsYN: surveyAnswers.SpouseKindWordsYN ?? 0,
+        SpouseFollowThroughYN: surveyAnswers.SpouseFollowThroughYN ?? 0,
+        ProactiveYN: surveyAnswers.SpouseQualityTimeYN ?? 0,
+        NoEscalationYN: surveyAnswers.SpouseKindWordsYN ?? 0,
         NoImpulseYN: surveyAnswers.NoImpulseYN ?? 0,
         TasksCompleted: surveyAnswers.TasksCompleted ?? 0,
         PlanningYN: surveyAnswers.PlanningYN ?? 0,
-        FollowThroughYN: 0,
-        TrackedSpendingYN: 0,
-        InvestYN: 0,
+        FollowThroughYN: surveyAnswers.SpouseFollowThroughYN ?? 0,
+        TrackedSpendingYN: surveyAnswers.TrackedSpendingYN ?? 0,
+        InvestYN: surveyAnswers.InvestYN ?? 0,
         Skill20YN: 0,
         ShippedYN: 0,
         BuildArtifactYN: 0,
