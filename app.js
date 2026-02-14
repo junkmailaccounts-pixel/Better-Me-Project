@@ -1,59 +1,96 @@
 const CSV_URL =
   "https://docs.google.com/spreadsheets/d/1nNsB3nbwwgF7bPuYNoqMnc3JXng7DK0Y1Djd0SSq8zM/gviz/tq?tqx=out:csv&sheet=BetterMe_Log";
 
-function stripOuterQuotes(s) {
-  const t = String(s ?? "").trim();
-  if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) return t.slice(1, -1);
-  return t;
+const CHART_HEIGHT = 260;
+const FETCH_TIMEOUT_MS = 15000;
+
+function stripOuterQuotes(value) {
+  const text = String(value ?? "").trim();
+  if (text.length >= 2 && text.startsWith('"') && text.endsWith('"')) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+
+function splitCSVLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  result.push(current);
+  return result;
 }
 
 function parseCSV(text) {
-  // Good enough for your sheet (no commas embedded inside quoted values expected)
-  const lines = text.trim().split(/\r?\n/);
+  const lines = String(text || "")
+    .trim()
+    .split(/\r?\n/)
+    .filter(Boolean);
 
-  const rawHeaders = lines[0].split(",").map(h => stripOuterQuotes(h.trim()));
+  if (!lines.length) return { headers: [], rows: [] };
+
+  const headers = splitCSVLine(lines[0]).map(h => stripOuterQuotes(h));
   const rows = lines.slice(1).map(line => {
-    const cols = line.split(",").map(c => stripOuterQuotes(c));
-    const obj = {};
-    rawHeaders.forEach((h, i) => (obj[h] = (cols[i] ?? "").trim()));
-    return obj;
+    const cols = splitCSVLine(line).map(c => stripOuterQuotes(c));
+    const row = {};
+
+    headers.forEach((header, index) => {
+      row[header] = String(cols[index] ?? "").trim();
+    });
+
+    return row;
   });
 
-  return { headers: rawHeaders, rows };
+  return { headers, rows };
 }
 
-function asNum(v) {
-  const n = Number(stripOuterQuotes(v));
+function asNum(value) {
+  const n = Number(stripOuterQuotes(value));
   return Number.isFinite(n) ? n : 0;
 }
 
-function toISODate(s) {
-  // Accepts:
-  // - 2026-02-13
-  // - 2/13/2026 9:15:00
-  // - 2/13/2026
-  // Returns YYYY-MM-DD
-  const raw = stripOuterQuotes(s);
+function toISODate(value) {
+  const raw = stripOuterQuotes(value);
   if (!raw) return "";
 
-  if (raw.includes("-") && raw.length >= 10) return raw.slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
 
-  const part = raw.split(" ")[0];
-  const m = part.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) {
-    const mm = m[1].padStart(2, "0");
-    const dd = m[2].padStart(2, "0");
-    const yyyy = m[3];
-    return `${yyyy}-${mm}-${dd}`;
-  }
+  const datePart = raw.split(" ")[0];
+  const match = datePart.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return "";
 
-  return part;
+  const mm = match[1].padStart(2, "0");
+  const dd = match[2].padStart(2, "0");
+  const yyyy = match[3];
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function sleepPts(x) {
-  if (x >= 7.0 && x <= 8.5) return 8;
-  if (x >= 6.0 && x <= 6.9) return 6;
-  if (x >= 5.0 && x <= 5.9) return 3;
+  if (x >= 7 && x <= 8.5) return 8;
+  if (x >= 6 && x < 7) return 6;
+  if (x >= 5 && x < 6) return 3;
   return 0;
 }
 
@@ -80,94 +117,86 @@ function deepPts(x) {
   return 0;
 }
 
-function computeScores(r) {
-  const sleep = asNum(r.SleepHours);
-  const steps = asNum(r.Steps);
-  const kidsMin = asNum(r.KidsMinutes);
-  const deepMin = asNum(r.DeepWorkMinutes);
-
-  const StrengthYN = asNum(r.StrengthYN);
-  const ProteinYN = asNum(r.ProteinYN);
-  const CaloriesYN = asNum(r.CaloriesYN);
-
-  const ProactiveYN = asNum(r.ProactiveYN);
-  const FollowThroughYN = asNum(r.FollowThroughYN);
-  const NoEscalationYN = asNum(r.NoEscalationYN);
-
-  const NoImpulseYN = asNum(r.NoImpulseYN);
-  const TrackedSpendingYN = asNum(r.TrackedSpendingYN);
-  const InvestYN = asNum(r.InvestYN);
-  const Skill20YN = asNum(r.Skill20YN);
-
-  const ShippedYN = asNum(r.ShippedYN);
-  const BuildArtifactYN = asNum(r.BuildArtifactYN);
-  const TomorrowOneSentenceYN = asNum(r.TomorrowOneSentenceYN);
+function computeScores(row) {
+  const sleep = asNum(row.SleepHours);
+  const steps = asNum(row.Steps);
+  const kidsMin = asNum(row.KidsMinutes);
+  const deepMin = asNum(row.DeepWorkMinutes);
 
   const health =
     sleepPts(sleep) +
     stepsPts(steps) +
-    StrengthYN * 4 +
-    ProteinYN * 3 +
-    CaloriesYN * 4;
+    asNum(row.StrengthYN) * 4 +
+    asNum(row.ProteinYN) * 3 +
+    asNum(row.CaloriesYN) * 4;
 
   const family =
     kidsPts(kidsMin) +
-    ProactiveYN * 5 +
-    FollowThroughYN * 5 +
-    NoEscalationYN * 5;
+    asNum(row.ProactiveYN) * 5 +
+    asNum(row.FollowThroughYN) * 5 +
+    asNum(row.NoEscalationYN) * 5;
 
   const wealth =
-    NoImpulseYN * 8 +
-    TrackedSpendingYN * 5 +
-    InvestYN * 7 +
-    Skill20YN * 5;
+    asNum(row.NoImpulseYN) * 8 +
+    asNum(row.TrackedSpendingYN) * 5 +
+    asNum(row.InvestYN) * 7 +
+    asNum(row.Skill20YN) * 5;
 
   const creation =
     deepPts(deepMin) +
-    ShippedYN * 7 +
-    BuildArtifactYN * 5 +
-    TomorrowOneSentenceYN * 3;
+    asNum(row.ShippedYN) * 7 +
+    asNum(row.BuildArtifactYN) * 5 +
+    asNum(row.TomorrowOneSentenceYN) * 3;
 
   const total = health + family + wealth + creation;
 
-  const flags = {
-    lowSleep: sleep < 6 ? 1 : 0,
-    lowDeep: deepMin < 30 ? 1 : 0,
-    escalation: NoEscalationYN === 0 ? 1 : 0,
-    impulse: NoImpulseYN === 0 ? 1 : 0,
+  return {
+    health,
+    family,
+    wealth,
+    creation,
+    total,
+    flags: {
+      lowSleep: sleep < 6 ? 1 : 0,
+      lowDeep: deepMin < 30 ? 1 : 0,
+      escalation: asNum(row.NoEscalationYN) === 0 ? 1 : 0,
+      impulse: asNum(row.NoImpulseYN) === 0 ? 1 : 0,
+    },
   };
-
-  return { health, family, wealth, creation, total, flags };
 }
 
-function rollingAvg(arr, window) {
-  return arr.map((_, i) => {
-    const start = Math.max(0, i - window + 1);
-    const slice = arr.slice(start, i + 1);
-    const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+function rollingAvg(values, windowSize) {
+  return values.map((_, index) => {
+    const start = Math.max(0, index - windowSize + 1);
+    const slice = values.slice(start, index + 1);
+    const avg = slice.reduce((sum, n) => sum + n, 0) / slice.length;
     return Math.round(avg * 10) / 10;
   });
 }
 
-function isConsecutiveDates(d1, d2) {
-  const a = new Date(d1);
-  const b = new Date(d2);
-  const diff = (b - a) / (1000 * 60 * 60 * 24);
-  return diff === 1;
+function isConsecutiveDates(previous, current) {
+  const a = new Date(previous);
+  const b = new Date(current);
+  return (b - a) / (1000 * 60 * 60 * 24) === 1;
 }
 
 function calcStreak(dates) {
   if (!dates.length) return 0;
+
   let streak = 1;
-  for (let i = dates.length - 1; i > 0; i--) {
-    if (isConsecutiveDates(dates[i - 1], dates[i])) streak += 1;
-    else break;
+  for (let i = dates.length - 1; i > 0; i -= 1) {
+    if (isConsecutiveDates(dates[i - 1], dates[i])) {
+      streak += 1;
+    } else {
+      break;
+    }
   }
+
   return streak;
 }
 
 function renderTable7(rows) {
-  const cols = [
+  const columns = [
     "Date",
     "total",
     "health",
@@ -180,21 +209,45 @@ function renderTable7(rows) {
     "DeepWorkMinutes",
   ];
 
-  const th = cols.map(c => `<th>${c}</th>`).join("");
-  const trs = rows
-    .map(r => {
-      const tds = cols.map(c => `<td>${r[c] ?? ""}</td>`).join("");
-      return `<tr>${tds}</tr>`;
-    })
+  const head = columns.map(col => `<th>${col}</th>`).join("");
+  const body = rows
+    .map(row => `<tr>${columns.map(col => `<td>${row[col] ?? ""}</td>`).join("")}</tr>`)
     .join("");
 
-  return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-function lockCanvasSize(id, height = 260) {
-  const canvas = document.getElementById(id);
-  const parent = canvas?.parentElement;
-  const parentWidth = Math.floor(parent?.clientWidth || 800);
+async function fetchWithTimeout(url, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { cache: "no-store", signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function getEl(id) {
+  return document.getElementById(id);
+}
+
+function setText(id, text) {
+  const el = getEl(id);
+  if (el) el.textContent = text;
+}
+
+function setHTML(id, html) {
+  const el = getEl(id);
+  if (el) el.innerHTML = html;
+}
+
+function lockCanvasSize(id, height = CHART_HEIGHT) {
+  const canvas = getEl(id);
+  if (!canvas) return null;
+
+  const parent = canvas.parentElement;
+  const parentWidth = Math.floor((parent && parent.clientWidth) || 800);
 
   canvas.width = Math.max(320, parentWidth - 36);
   canvas.height = height;
@@ -212,67 +265,21 @@ function chartOptions() {
   };
 }
 
-async function main() {
-  const status = document.getElementById("status");
+function renderCharts({ dates, totals, last14, warn }) {
+  const scoreCanvas = lockCanvasSize("scoreChart");
+  const pillarsCanvas = lockCanvasSize("pillarsChart");
+  const flagsCanvas = lockCanvasSize("flagsChart");
 
-  try {
-    status.textContent = "Loading data from Google Sheet…";
-
-    const res = await fetch(CSV_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
-    const text = await res.text();
-
-    const parsed = parseCSV(text);
-    let rows = parsed.rows;
-
-    // Normalize Date: use Date OR Timestamp if present
-    rows = rows
-      .map(r => {
-        const dateVal = r.Date || r.Timestamp || r.timestamp || "";
-        return { ...r, Date: toISODate(dateVal) };
-      })
-      .filter(r => r.Date)
-      .sort((a, b) => new Date(a.Date) - new Date(b.Date));
-
-    if (rows.length === 0) {
-      status.textContent =
-        "No usable rows after parsing. Confirm your sheet has Date or Timestamp values.";
-@@ -238,68 +259,68 @@ async function main() {
-    const totals = computed.map(r => r.total);
-    const avg7 = rollingAvg(totals, 7);
-    const today = computed[computed.length - 1];
-
-    document.getElementById("todayScore").textContent = today.total ?? "–";
-    document.getElementById("avg7").textContent = avg7[avg7.length - 1] ?? "–";
-
-    document.getElementById("pillarsToday").innerHTML =
-      `Health ${today.health}/25<br>Family ${today.family}/25<br>Wealth ${today.wealth}/25<br>Creation ${today.creation}/25`;
-
-    const last14 = computed.slice(-14);
-    const warn = {
-      lowSleep: last14.reduce((a, r) => a + (r.lowSleep || 0), 0),
-      lowDeep: last14.reduce((a, r) => a + (r.lowDeep || 0), 0),
-      escalation: last14.reduce((a, r) => a + (r.escalation || 0), 0),
-      impulse: last14.reduce((a, r) => a + (r.impulse || 0), 0),
-    };
-
-    document.getElementById("warnings14").innerHTML =
-      `Low sleep: ${warn.lowSleep}<br>Low deep work: ${warn.lowDeep}<br>Escalations: ${warn.escalation}<br>Impulse spends: ${warn.impulse}`;
-
-    const dates = computed.map(r => r.Date);
-    document.getElementById("streak").textContent = calcStreak(dates);
-
-    // Charts
-    new Chart(document.getElementById("scoreChart"), {
-    new Chart(lockCanvasSize("scoreChart"), {
+  if (scoreCanvas) {
+    new Chart(scoreCanvas, {
       type: "line",
       data: { labels: dates, datasets: [{ label: "Score", data: totals }] },
-      options: { responsive: true, maintainAspectRatio: false },
       options: chartOptions(),
     });
+  }
 
-    new Chart(document.getElementById("pillarsChart"), {
-    new Chart(lockCanvasSize("pillarsChart"), {
+  if (pillarsCanvas) {
+    new Chart(pillarsCanvas, {
       type: "line",
       data: {
         labels: last14.map(r => r.Date),
@@ -283,32 +290,115 @@ async function main() {
           { label: "Creation", data: last14.map(r => r.creation) },
         ],
       },
-      options: { responsive: true, maintainAspectRatio: false },
       options: chartOptions(),
     });
+  }
 
-    new Chart(document.getElementById("flagsChart"), {
-    new Chart(lockCanvasSize("flagsChart"), {
+  if (flagsCanvas) {
+    new Chart(flagsCanvas, {
       type: "bar",
       data: {
         labels: ["Low sleep", "Low deep work", "Escalations", "Impulse"],
-        datasets: [
-          { label: "Count (14d)", data: [warn.lowSleep, warn.lowDeep, warn.escalation, warn.impulse] },
-        ],
+        datasets: [{ label: "Count (14d)", data: [warn.lowSleep, warn.lowDeep, warn.escalation, warn.impulse] }],
       },
-      options: { responsive: true, maintainAspectRatio: false },
       options: chartOptions(),
     });
-
-    // Table
-    document.getElementById("table7").innerHTML = renderTable7(
-      computed.slice(-7).reverse()
-    );
-
-    status.textContent = `Loaded ${computed.length} rows. Last entry: ${today.Date}`;
-  } catch (e) {
-    status.textContent = `Error: ${e.message}`;
   }
 }
 
-main();
+function normalizeRows(rawRows) {
+  return rawRows
+    .map(row => {
+      const dateValue = row.Date || row.Timestamp || row.timestamp || "";
+      return { ...row, Date: toISODate(dateValue) };
+    })
+    .filter(row => row.Date)
+    .sort((a, b) => new Date(a.Date) - new Date(b.Date));
+}
+
+function buildComputedRows(rows) {
+  return rows.map(row => {
+    const scored = computeScores(row);
+    return {
+      ...row,
+      total: scored.total,
+      health: scored.health,
+      family: scored.family,
+      wealth: scored.wealth,
+      creation: scored.creation,
+      lowSleep: scored.flags.lowSleep,
+      lowDeep: scored.flags.lowDeep,
+      escalation: scored.flags.escalation,
+      impulse: scored.flags.impulse,
+    };
+  });
+}
+
+async function main() {
+  const status = getEl("status");
+  if (!status) return;
+
+  try {
+    status.textContent = "Loading data from Google Sheet…";
+
+    const res = await fetchWithTimeout(CSV_URL);
+    if (!res.ok) throw new Error(`CSV fetch failed: ${res.status}`);
+
+    const text = await res.text();
+    const { rows: rawRows } = parseCSV(text);
+    const rows = normalizeRows(rawRows);
+
+    if (!rows.length) {
+      status.textContent = "No usable rows after parsing. Confirm your sheet has Date or Timestamp values.";
+      return;
+    }
+
+    const computed = buildComputedRows(rows);
+    const totals = computed.map(row => row.total);
+    const avg7 = rollingAvg(totals, 7);
+    const today = computed[computed.length - 1];
+    const last14 = computed.slice(-14);
+
+    const warn = {
+      lowSleep: last14.reduce((sum, row) => sum + row.lowSleep, 0),
+      lowDeep: last14.reduce((sum, row) => sum + row.lowDeep, 0),
+      escalation: last14.reduce((sum, row) => sum + row.escalation, 0),
+      impulse: last14.reduce((sum, row) => sum + row.impulse, 0),
+    };
+
+    setText("todayScore", String(today.total));
+    setText("avg7", String(avg7[avg7.length - 1] ?? "–"));
+    setText("streak", String(calcStreak(computed.map(row => row.Date))));
+
+    setHTML(
+      "pillarsToday",
+      `Health ${today.health}/25<br>Family ${today.family}/25<br>Wealth ${today.wealth}/25<br>Creation ${today.creation}/25`
+    );
+
+    setHTML(
+      "warnings14",
+      `Low sleep: ${warn.lowSleep}<br>Low deep work: ${warn.lowDeep}<br>Escalations: ${warn.escalation}<br>Impulse spends: ${warn.impulse}`
+    );
+
+    setHTML("table7", renderTable7(computed.slice(-7).reverse()));
+
+    renderCharts({
+      dates: computed.map(row => row.Date),
+      totals,
+      last14,
+      warn,
+    });
+
+    status.textContent = `Loaded ${computed.length} rows. Last entry: ${today.Date}`;
+  } catch (error) {
+    const message = error && error.name === "AbortError"
+      ? `Error: Sheet request timed out after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s.`
+      : `Error: ${error.message}`;
+
+    status.textContent = message;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  main();
+});
