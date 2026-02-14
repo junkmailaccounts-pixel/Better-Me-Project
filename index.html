@@ -141,6 +141,27 @@
     .controls{
       display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end;
     }
+    .tabBar{
+      display:flex;
+      gap:10px;
+      margin-bottom:14px;
+      flex-wrap:wrap;
+    }
+    .tabBtn{
+      background:rgba(255,255,255,0.02);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .tabBtn.active{
+      background:rgba(138,180,255,0.16);
+      border-color:#5f7ea8;
+    }
+    .tabPanel{display:none}
+    .tabPanel.active{display:block}
     .select{
       background: var(--panel2);
       border:1px solid var(--border);
@@ -201,92 +222,135 @@
       </div>
     </header>
 
-    <div class="card surveyCard">
-      <div class="surveyTop">
-        <div>
-          <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
-          <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
-        </div>
-        <div class="controls">
-          <input id="writeUrlInput" class="select" type="url" placeholder="Apps Script Web App URL (.../exec)" style="min-width:320px" />
-          <button class="btn" id="saveWriteUrlBtn" type="button">Save endpoint</button>
-          <button class="btn" id="surveyResetBtn" type="button">Reset</button>
-        </div>
-      </div>
-      <div class="surveyQ">
-        <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
-        <input id="surveyInput" class="surveyInput" type="number" />
-        <div class="surveyHint" id="surveyHint"></div>
-        <div class="surveyControls">
-          <button class="btn" id="surveyPrevBtn" type="button">Back</button>
-          <button class="btn" id="surveyNextBtn" type="button">Next</button>
-          <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
-        </div>
-      </div>
+    <div class="tabBar" role="tablist" aria-label="Dashboard sections">
+      <button class="tabBtn active" id="dashboardTabBtn" data-tab="dashboard" type="button" role="tab" aria-selected="true">Dashboard</button>
+      <button class="tabBtn" id="dataTabBtn" data-tab="data" type="button" role="tab" aria-selected="false">Daily check-in & data</button>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="row">
-          <div class="bigScore">
-            <div class="scoreNum" id="todayScore">--</div>
-            <div class="scoreMeta">
-              <div id="todayLabel">Today score</div>
-              <div class="muted" id="deltaLabel">--</div>
+    <section id="dashboardTab" class="tabPanel active" role="tabpanel" aria-labelledby="dashboardTabBtn">
+      <div class="grid">
+        <div class="card">
+          <div class="row">
+            <div class="bigScore">
+              <div class="scoreNum" id="todayScore">--</div>
+              <div class="scoreMeta">
+                <div id="todayLabel">Today score</div>
+                <div class="muted" id="deltaLabel">--</div>
+              </div>
+            </div>
+            <div class="pill" id="statusPill">
+              <span class="dot warn"></span>
+              <span id="statusText">Loading</span>
             </div>
           </div>
-          <div class="pill" id="statusPill">
-            <span class="dot warn"></span>
-            <span id="statusText">Loading</span>
-          </div>
-        </div>
 
-        <div class="barWrap">
-          <div class="bar" title="Pillar contributions to Today score">
-            <div id="barInner" style="display:flex;width:100%">
-              <div id="barH" style="width:25%" class="mini h"></div>
-              <div id="barF" style="width:25%" class="mini f"></div>
-              <div id="barC" style="width:25%" class="mini c"></div>
-              <div id="barW" style="width:25%" class="mini w"></div>
+          <div class="barWrap">
+            <div class="bar" title="Pillar contributions to Today score">
+              <div id="barInner" style="display:flex;width:100%">
+                <div id="barH" style="width:25%" class="mini h"></div>
+                <div id="barF" style="width:25%" class="mini f"></div>
+                <div id="barC" style="width:25%" class="mini c"></div>
+                <div id="barW" style="width:25%" class="mini w"></div>
+              </div>
+            </div>
+            <div class="barLegend">
+              <div class="legendItem"><span class="mini h"></span>Health <span class="muted" id="hVal">--</span></div>
+              <div class="legendItem"><span class="mini f"></span>Family <span class="muted" id="fVal">--</span></div>
+              <div class="legendItem"><span class="mini c"></span>Creation <span class="muted" id="cVal">--</span></div>
+              <div class="legendItem"><span class="mini w"></span>Wealth <span class="muted" id="wVal">--</span></div>
             </div>
           </div>
-          <div class="barLegend">
-            <div class="legendItem"><span class="mini h"></span>Health <span class="muted" id="hVal">--</span></div>
-            <div class="legendItem"><span class="mini f"></span>Family <span class="muted" id="fVal">--</span></div>
-            <div class="legendItem"><span class="mini c"></span>Creation <span class="muted" id="cVal">--</span></div>
-            <div class="legendItem"><span class="mini w"></span>Wealth <span class="muted" id="wVal">--</span></div>
+
+          <div class="kpiGrid">
+            <div class="kpi">
+              <div class="label">Trend vs yesterday</div>
+              <div class="value" id="trendArrow">--</div>
+              <div class="tiny" id="trendDetail">--</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Last 7 days average</div>
+              <div class="value" id="avg7">--</div>
+              <div class="tiny" id="avg7Detail">--</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Warnings</div>
+              <div class="value" id="warnCount">--</div>
+              <div class="tiny" id="warnDetail">--</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Tasks completed</div>
+              <div class="value" id="tasksCompletedCount">--</div>
+              <div class="tiny" id="tasksPlanningDetail">--</div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px" class="nudge" id="nudgeBox">
+            <strong>Nudge:</strong> Loading…
           </div>
         </div>
+      </div>
 
-        <div class="kpiGrid">
-          <div class="kpi">
-            <div class="label">Trend vs yesterday</div>
-            <div class="value" id="trendArrow">--</div>
-            <div class="tiny" id="trendDetail">--</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Last 7 days average</div>
-            <div class="value" id="avg7">--</div>
-            <div class="tiny" id="avg7Detail">--</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Warnings</div>
-            <div class="value" id="warnCount">--</div>
-            <div class="tiny" id="warnDetail">--</div>
-          </div>
-          <div class="kpi">
-            <div class="label">Tasks completed</div>
-            <div class="value" id="tasksCompletedCount">--</div>
-            <div class="tiny" id="tasksPlanningDetail">--</div>
+      <div class="card graphWrap">
+        <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
+        <div class="graphMeta">
+          <div id="graphSummary">Loading graph…</div>
+          <div class="graphLegend">
+            <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
+            <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>Thicker 5-day moving average line</div>
           </div>
         </div>
+        <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
+      </div>
+    </section>
 
-        <div style="margin-top:14px" class="nudge" id="nudgeBox">
-          <strong>Nudge:</strong> Loading…
+    <section id="dataTab" class="tabPanel" role="tabpanel" aria-labelledby="dataTabBtn">
+      <div class="card surveyCard">
+        <div class="surveyTop">
+          <div>
+            <h2 class="surveyTitle">Daily check-in (12 questions)</h2>
+            <div class="surveyMeta" id="surveyStatus">Answer each question in order, then submit to Google Sheet.</div>
+          </div>
+          <div class="controls">
+            <input id="writeUrlInput" class="select" type="url" placeholder="Apps Script Web App URL (.../exec)" style="min-width:320px" />
+            <button class="btn" id="saveWriteUrlBtn" type="button">Save endpoint</button>
+            <button class="btn" id="surveyResetBtn" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="surveyQ">
+          <div class="surveyLabel" id="surveyQuestion">Loading question...</div>
+          <input id="surveyInput" class="surveyInput" type="number" />
+          <div class="surveyHint" id="surveyHint"></div>
+          <div class="surveyControls">
+            <button class="btn" id="surveyPrevBtn" type="button">Back</button>
+            <button class="btn" id="surveyNextBtn" type="button">Next</button>
+            <button class="btn" id="surveySubmitBtn" type="button" style="display:none">Submit to Sheet</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="twoCol">
+        <div class="card">
+          <h2 class="sectionTitle">Recent days</h2>
+          <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Score</th>
+                <th>Health</th>
+                <th>Family</th>
+                <th>Creation</th>
+                <th>Wealth</th>
+              </tr>
+            </thead>
+            <tbody id="recentTable"></tbody>
+          </table>
+          <div class="footer" id="footerNote">--</div>
         </div>
 
-        <div style="margin-top:12px" class="twoCol">
-          <div class="kpi">
+        <div class="card">
+          <h2 class="sectionTitle">Score sheet</h2>
+          <div class="kpi" style="margin-bottom:12px">
             <div class="label">Inputs</div>
             <div class="tiny muted">Sleep, steps, deep work, spending triggers</div>
             <table style="margin-top:6px">
@@ -302,38 +366,7 @@
           </div>
         </div>
       </div>
-
-      <div class="card">
-        <h2 class="sectionTitle">Recent days</h2>
-        <div class="muted" style="margin-bottom:10px">Most recent entries from your sheet.</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Score</th>
-              <th>Health</th>
-              <th>Family</th>
-              <th>Creation</th>
-              <th>Wealth</th>
-            </tr>
-          </thead>
-          <tbody id="recentTable"></tbody>
-        </table>
-        <div class="footer" id="footerNote">--</div>
-      </div>
-    </div>
-
-    <div class="card graphWrap">
-      <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
-      <div class="graphMeta">
-        <div id="graphSummary">Loading graph…</div>
-        <div class="graphLegend">
-          <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
-          <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>Thicker 5-day moving average line</div>
-        </div>
-      </div>
-      <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
-    </div>
+    </section>
   </div>
 
   <script>
@@ -941,6 +974,28 @@
       updateSurveyView();
     }
 
+    function wireTabs(){
+      const buttons = Array.from(document.querySelectorAll(".tabBtn"));
+      const panels = {
+        dashboard: $("dashboardTab"),
+        data: $("dataTab")
+      };
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tab = btn.dataset.tab;
+          buttons.forEach((b) => {
+            const active = b === btn;
+            b.classList.toggle("active", active);
+            b.setAttribute("aria-selected", active ? "true" : "false");
+          });
+          Object.entries(panels).forEach(([key, panel]) => {
+            panel.classList.toggle("active", key === tab);
+          });
+        });
+      });
+    }
+
     async function load(){
       try{
         if (!CSV_URL || CSV_URL.includes("PASTE_YOUR_CSV_URL_HERE")){
@@ -1132,6 +1187,7 @@
 
     $("season").addEventListener("change", load);
     $("refreshBtn").addEventListener("click", load);
+    wireTabs();
     wireSurvey();
     load();
   </script>
