@@ -745,7 +745,17 @@
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error("Submit failed. HTTP " + res.status);
+      const bodyText = await res.text();
+      if (!res.ok) {
+        const sample = bodyText ? bodyText.slice(0, 180).replace(/\s+/g, " ") : "";
+        throw new Error(`Submit failed (HTTP ${res.status}). ${sample}`.trim());
+      }
+
+      if (/^<!doctype html>/i.test(bodyText.trim())) {
+        setSurveyStatus("Sheet endpoint returned HTML. Confirm you used the Apps Script /exec URL, not a page URL.");
+        return;
+      }
+
       setSurveyStatus("Saved. Refreshing dashboard...");
       await load();
       setSurveyStatus("Saved to sheet successfully.");
@@ -785,6 +795,10 @@
         }
         if (!/^https:\/\//i.test(url)) {
           setSurveyStatus("Endpoint must be a valid https URL.");
+          return;
+        }
+        if (!/\/exec(?:$|[?#])/.test(url)) {
+          setSurveyStatus("Use the deployed Apps Script Web App URL ending in /exec.");
           return;
         }
         setSheetWriteUrl(url);
