@@ -7,6 +7,15 @@
   --muted: #4f566b;
   --border: rgba(255, 255, 255, 0.8);
   --shadow: 0 10px 28px rgba(35, 48, 100, 0.1);
+  --bg-start: #f5f7ff;
+  --bg-mid: #eef2ff;
+  --bg-end: #e9f7f4;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-border: rgba(255, 255, 255, 0.78);
+  --text: #101321;
+  --muted: #525a70;
+  --accent: #5c67f2;
+  --shadow: 0 12px 28px rgba(25, 39, 86, 0.11);
 }
 
 * {
@@ -19,6 +28,7 @@ body {
   margin: 0;
   background: #f6f7fb;
   padding: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 body {
@@ -30,6 +40,9 @@ body {
     linear-gradient(160deg, #f7f9ff 0%, #f3f5fb 40%, #edf1ff 100%);
   color: #111;
     linear-gradient(160deg, var(--bg-1) 0%, var(--bg-2) 40%, var(--bg-3) 100%);
+    radial-gradient(circle at 10% 0%, rgba(128, 113, 255, 0.22), transparent 32%),
+    radial-gradient(circle at 95% 10%, rgba(34, 211, 182, 0.2), transparent 30%),
+    linear-gradient(165deg, var(--bg-start) 0%, var(--bg-mid) 48%, var(--bg-end) 100%);
   background-attachment: fixed;
 }
 
@@ -37,25 +50,33 @@ body {
   padding: 24px;
   max-width: 1200px;
   width: min(1200px, 100% - 32px);
+  width: min(1200px, calc(100% - 32px));
   margin: 0 auto;
   padding: 24px 0 32px;
+  padding: 26px 0 36px;
 }
 
 h1 {
   margin-bottom: 6px;
   margin: 0 0 6px;
   font-size: clamp(1.5rem, 2.5vw, 2rem);
+  margin: 0 0 8px;
+  font-size: clamp(1.65rem, 2.6vw, 2.2rem);
+  letter-spacing: -0.02em;
 }
 
 h3 {
   margin: 0 0 12px;
+  font-size: 1.02rem;
 }
 
 .sub {
   color: #444;
+  margin: 0 0 18px;
   color: var(--muted);
   font-size: 13px;
   margin-bottom: 18px;
+  font-size: 0.84rem;
 }
 
 .grid {
@@ -71,6 +92,9 @@ h3 {
   background: rgba(255, 255, 255, 0.94);
   background: var(--card-bg);
   border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
   padding: 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.8);
@@ -78,6 +102,7 @@ h3 {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(4px);
+  backdrop-filter: blur(5px);
 }
 
 .span-2 {
@@ -87,6 +112,10 @@ h3 {
 .kpi .label {
   font-size: 12px;
   color: #555;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .kpi .value {
@@ -95,6 +124,10 @@ h3 {
   font-weight: 800;
   margin-top: 6px;
   line-height: 1.1;
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  color: var(--accent);
 }
 
 .kpi .small {
@@ -102,6 +135,8 @@ h3 {
   color: #444;
   color: #3e4559;
   margin-top: 8px;
+  font-size: 0.85rem;
+  color: #3f4660;
   line-height: 1.4;
 }
 
@@ -123,18 +158,23 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  font-size: 0.82rem;
 }
 
 th,
 td {
   padding: 8px 10px;
   border-bottom: 1px solid #e8ebf4;
+  padding: 9px 10px;
+  border-bottom: 1px solid #e4e9f7;
   text-align: left;
   white-space: nowrap;
 }
 
 th {
   color: #3c4561;
+  background: rgba(240, 244, 255, 0.95);
+  color: #3a4262;
   font-weight: 650;
   background: rgba(246, 248, 255, 0.9);
 }
@@ -153,6 +193,8 @@ th {
   .wrap {
     width: min(1200px, 100% - 24px);
     padding-top: 16px;
+    width: min(1200px, calc(100% - 24px));
+    padding-top: 18px;
   }
 
   .grid {
@@ -161,6 +203,10 @@ th {
 
   .span-2 {
     grid-column: span 1;
+  }
+
+  .card {
+    padding: 16px;
   }
 
   .card canvas {
