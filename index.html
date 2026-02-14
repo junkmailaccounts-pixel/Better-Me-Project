@@ -190,7 +190,7 @@
           <button class="btn" id="refreshBtn" type="button">Refresh</button>
         </div>
         <div style="margin-top:8px" class="muted">
-          Read only view from your Google Sheet CSV.
+          Reads from your Google Sheet CSV and writes new survey answers using your Apps Script endpoint.
         </div>
       </div>
     </header>
@@ -741,7 +741,8 @@
       const payload = buildSurveyPayload();
       const res = await fetch(sheetWriteUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // Avoid custom headers so this stays a "simple request" and works with
+        // Apps Script web apps that do not implement CORS preflight/OPTIONS.
         body: JSON.stringify(payload)
       });
 
