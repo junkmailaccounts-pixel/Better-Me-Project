@@ -168,6 +168,12 @@
     .surveyControls{display:flex;gap:8px;justify-content:space-between;margin-top:10px;flex-wrap:wrap}
     .surveyInput{width:100%;background:#0b1322;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px;font-size:14px}
     .surveyHint{font-size:12px;color:var(--muted);margin-top:6px}
+    .graphWrap{margin-top:14px}
+    .graphMeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:10px}
+    .graphLegend{display:flex;gap:12px;flex-wrap:wrap}
+    .graphLegend .legendItem{font-size:12px}
+    .graphSvg{width:100%;height:auto;border:1px solid var(--border);border-radius:12px;background:#0b1322}
+    .graphAxis{font-size:11px;fill:var(--muted)}
   </style>
 </head>
 
@@ -310,6 +316,18 @@
         </table>
         <div class="footer" id="footerNote">--</div>
       </div>
+    </div>
+
+    <div class="card graphWrap">
+      <h2 class="sectionTitle">Score graph (daily + 5-day moving average)</h2>
+      <div class="graphMeta">
+        <div id="graphSummary">Loading graph…</div>
+        <div class="graphLegend">
+          <div class="legendItem"><span class="dot" style="background:#8ab4ff"></span>Daily total score points</div>
+          <div class="legendItem"><span class="dot" style="background:#3ddc97"></span>Thicker 5-day moving average line</div>
+        </div>
+      </div>
+      <svg id="trendGraph" class="graphSvg" viewBox="0 0 960 320" role="img" aria-label="Score trend chart"></svg>
     </div>
   </div>
 
@@ -512,6 +530,84 @@
 
       const d = new Date(raw);
       return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function movingAverage(values, windowSize){
+      return values.map((_, i) => {
+        const start = Math.max(0, i - windowSize + 1);
+        const windowVals = values.slice(start, i + 1).filter(Number.isFinite);
+        if (!windowVals.length) return null;
+        return windowVals.reduce((sum, n) => sum + n, 0) / windowVals.length;
+      });
+    }
+
+    function buildLinePath(points){
+      if (!points.length) return "";
+      return points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+    }
+
+    function renderTrendGraph(rows){
+      const svg = $("trendGraph");
+      if (!svg) return;
+
+      const series = rows.slice(Math.max(0, rows.length - 30));
+      const scores = series.map(r => r.score);
+      const avg5 = movingAverage(scores, 5);
+      const values = [...scores, ...avg5].filter(Number.isFinite);
+
+      if (!series.length || !values.length) {
+        svg.innerHTML = "";
+        $("graphSummary").textContent = "No chart data available yet.";
+        return;
+      }
+
+      const width = 960;
+      const height = 320;
+      const pad = { top: 18, right: 22, bottom: 34, left: 42 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+
+      const minY = Math.max(0, Math.floor(Math.min(...values) - 5));
+      const maxY = Math.min(100, Math.ceil(Math.max(...values) + 5));
+      const spanY = Math.max(1, maxY - minY);
+
+      const xAt = (i) => pad.left + (plotW * i) / Math.max(1, series.length - 1);
+      const yAt = (v) => pad.top + plotH - ((v - minY) / spanY) * plotH;
+
+      const dailyPoints = scores
+        .map((v, i) => Number.isFinite(v) ? ({ x: xAt(i), y: yAt(v), v, i }) : null)
+        .filter(Boolean);
+      const avgPoints = avg5
+        .map((v, i) => Number.isFinite(v) ? ({ x: xAt(i), y: yAt(v), v, i }) : null)
+        .filter(Boolean);
+
+      const yTicks = 5;
+      const tickLines = Array.from({ length: yTicks + 1 }, (_, idx) => {
+        const t = idx / yTicks;
+        const y = pad.top + plotH * t;
+        const val = Math.round(maxY - (spanY * t));
+        return `
+          <line x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}" stroke="#22314a" stroke-width="1" opacity="0.7" />
+          <text x="${pad.left - 8}" y="${y + 4}" text-anchor="end" class="graphAxis">${val}</text>
+        `;
+      }).join("");
+
+      const xFirst = series[0].dateText || series[0].date.toISOString().slice(0,10);
+      const xLast = series[series.length - 1].dateText || series[series.length - 1].date.toISOString().slice(0,10);
+
+      svg.innerHTML = `
+        <rect x="0" y="0" width="${width}" height="${height}" fill="transparent"></rect>
+        ${tickLines}
+        <line x1="${pad.left}" y1="${height - pad.bottom}" x2="${width - pad.right}" y2="${height - pad.bottom}" stroke="#405473" stroke-width="1.2" />
+        <path d="${buildLinePath(dailyPoints)}" fill="none" stroke="#8ab4ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.95" />
+        <path d="${buildLinePath(avgPoints)}" fill="none" stroke="#3ddc97" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" opacity="0.85" />
+        ${dailyPoints.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3.2" fill="#8ab4ff"><title>${series[p.i].date.toISOString().slice(0,10)}: ${fmt(p.v,0)}</title></circle>`).join("")}
+        <text x="${pad.left}" y="${height - 10}" class="graphAxis">${xFirst}</text>
+        <text x="${width - pad.right}" y="${height - 10}" text-anchor="end" class="graphAxis">${xLast}</text>
+      `;
+
+      const latestAvg5 = avg5[avg5.length - 1];
+      $("graphSummary").textContent = `Showing ${series.length} days. Latest score: ${fmt(scores[scores.length - 1],0)} | Latest 5-day moving average: ${fmt(latestAvg5,1)}.`;
     }
 
     function fmt(n, digits=0){
@@ -1001,6 +1097,8 @@
 
         $("footerNote").textContent =
           "Weights in use: Health " + Math.round(w.health*100) + "%, Family " + Math.round(w.family*100) + "%, Creation " + Math.round(w.creation*100) + "%, Wealth " + Math.round(w.wealth*100) + "%.";
+
+        renderTrendGraph(computed);
 
       } catch (err){
         $("subtitle").textContent = "Error loading data";
