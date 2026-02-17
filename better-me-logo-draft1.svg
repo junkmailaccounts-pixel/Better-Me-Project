@@ -1,0 +1,13 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Better Me Logo Draft 1 - Upward Spark</title>
+  <desc id="desc">Rounded upward arrow pointing to the top-right, ending in a four-point spark.</desc>
+
+  <!-- Arrow shaft -->
+  <path d="M44 188L154 78" stroke="#2563EB" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Arrow wings (without sharp tip so spark becomes the tip) -->
+  <path d="M118 78H154V114" stroke="#2563EB" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Spark at tip -->
+  <path d="M180 40L186 58L204 64L186 70L180 88L174 70L156 64L174 58L180 40Z" fill="#F59E0B"/>
+</svg>
