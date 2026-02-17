@@ -46,6 +46,12 @@ body {
   background-attachment: fixed;
 }
 
+/* User request: make the full page background light blue */
+html,
+body {
+  background: #bcdcff !important;
+}
+
 .wrap {
   padding: 24px;
   max-width: 1200px;
